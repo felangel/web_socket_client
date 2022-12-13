@@ -44,7 +44,6 @@ class WebSocket {
   final _messageController = StreamController.broadcast();
   final _readyStateController = StreamController<ReadyState>.broadcast();
 
-  StreamSubscription<dynamic>? _subscription;
   Timer? _backoffTimer;
 
   var __readyState = ReadyState.connecting;
@@ -87,7 +86,6 @@ class WebSocket {
         );
 
       _channel = getWebSocketChannel(ws);
-      _subscription?.cancel().ignore();
     } catch (_) {
       attemptToReconnect();
     }
@@ -135,7 +133,6 @@ class WebSocket {
     ]).whenComplete(() {
       _readyState = ReadyState.closed;
       _messageController.close();
-      _subscription?.cancel();
       _readyStateController.close();
       _isClosed = true;
     });
