@@ -17,7 +17,7 @@ void main() {
       test(
           'emits [connecting, closed] '
           'when not able to establish a connection.', () async {
-        final socket = WebSocket(uri: uri);
+        final socket = WebSocket(uri);
 
         await expectLater(
           socket.readyStates,
@@ -36,7 +36,7 @@ void main() {
           'when able to establish a connection.', () async {
         server = await createWebSocketServer();
         final socket = WebSocket(
-          uri: Uri.parse('ws://localhost:${server!.port}'),
+          Uri.parse('ws://localhost:${server!.port}'),
           backoff: const ConstantBackoff(Duration.zero),
         );
 
@@ -57,7 +57,7 @@ void main() {
           'when able to establish a connection after retries.', () async {
         const port = 8080;
         final socket = WebSocket(
-          uri: Uri.parse('ws://localhost:$port'),
+          Uri.parse('ws://localhost:$port'),
           backoff: const ConstantBackoff(Duration.zero),
         );
 
@@ -90,7 +90,7 @@ void main() {
         );
 
         final socket = WebSocket(
-          uri: Uri.parse('ws://localhost:$port'),
+          Uri.parse('ws://localhost:$port'),
           backoff: const ConstantBackoff(Duration.zero),
         );
 
@@ -136,7 +136,7 @@ void main() {
 
         final readyStates = <ReadyState>[];
         final socket = WebSocket(
-          uri: Uri.parse('ws://localhost:${server!.port}'),
+          Uri.parse('ws://localhost:${server!.port}'),
           backoff: const ConstantBackoff(Duration.zero),
         )..readyStates.listen(readyStates.add);
 
@@ -169,7 +169,7 @@ void main() {
       test('emits nothing when connection is closed', () async {
         final messages = <dynamic>[];
         final socket = WebSocket(
-          uri: Uri.parse('ws://localhost:8080'),
+          uri,
           backoff: const ConstantBackoff(Duration.zero),
         )..messages.listen(messages.add);
 
@@ -193,7 +193,7 @@ void main() {
 
         final messages = <dynamic>[];
         final socket = WebSocket(
-          uri: Uri.parse('ws://localhost:${server!.port}'),
+          Uri.parse('ws://localhost:${server!.port}'),
           backoff: const ConstantBackoff(Duration.zero),
         )..messages.listen(messages.add);
 
@@ -214,7 +214,7 @@ void main() {
     group('send', () {
       test('does nothing when connection is closed', () async {
         final socket = WebSocket(
-          uri: Uri.parse('ws://localhost:8080'),
+          uri,
           backoff: const ConstantBackoff(Duration.zero),
         );
         expect(() => socket.send(null), returnsNormally);
@@ -231,7 +231,7 @@ void main() {
         );
 
         final socket = WebSocket(
-          uri: Uri.parse('ws://localhost:${server!.port}'),
+          Uri.parse('ws://localhost:${server!.port}'),
           backoff: const ConstantBackoff(Duration.zero),
         );
 
@@ -257,7 +257,7 @@ void main() {
 
     group('close', () {
       test('does nothing when connection is closed', () async {
-        final socket = WebSocket(uri: uri);
+        final socket = WebSocket(uri);
 
         await expectLater(
           socket.readyStates,

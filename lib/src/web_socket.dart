@@ -21,8 +21,8 @@ const _defaultTimeout = Duration(seconds: 60);
 /// {@endtemplate}
 class WebSocket {
   /// {@macro web_socket}
-  WebSocket({
-    required Uri uri,
+  WebSocket(
+    Uri uri, {
     Iterable<String>? protocols,
     Duration? pingInterval,
     Backoff? backoff,
