@@ -8,12 +8,19 @@ void main() {
       const increment = Duration(seconds: 2);
       final backoff = LinearBackoff(initial: initial, increment: increment);
 
-      const intervals = 10;
-      final expected = List.generate(
-        intervals,
-        (index) => initial + (increment * index),
-      );
-      final actual = List.generate(intervals, (_) => backoff.next());
+      const expected = [
+        Duration(seconds: 1),
+        Duration(seconds: 3),
+        Duration(seconds: 5),
+        Duration(seconds: 7),
+        Duration(seconds: 9),
+        Duration(seconds: 11),
+        Duration(seconds: 13),
+        Duration(seconds: 15),
+        Duration(seconds: 17),
+        Duration(seconds: 19),
+      ];
+      final actual = List.generate(expected.length, (_) => backoff.next());
 
       expect(actual, equals(expected));
     });
@@ -28,13 +35,19 @@ void main() {
         maximum: maximum,
       );
 
-      const intervals = 10;
-      final expected = List.generate(intervals, (index) {
-        final value = initial + (increment * index);
-        if (value >= maximum) return maximum;
-        return value;
-      });
-      final actual = List.generate(intervals, (_) => backoff.next());
+      const expected = [
+        Duration(seconds: 1),
+        Duration(seconds: 3),
+        Duration(seconds: 5),
+        Duration(seconds: 5),
+        Duration(seconds: 5),
+        Duration(seconds: 5),
+        Duration(seconds: 5),
+        Duration(seconds: 5),
+        Duration(seconds: 5),
+        Duration(seconds: 5),
+      ];
+      final actual = List.generate(expected.length, (_) => backoff.next());
 
       expect(actual, equals(expected));
     });
