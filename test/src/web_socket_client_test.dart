@@ -35,7 +35,7 @@ void main() {
         server = await io.HttpServer.bind('localhost', 0);
         server.transform(io.WebSocketTransformer()).listen((webSocket) {
           final channel = IOWebSocketChannel(webSocket);
-          channel.sink.add('pong');
+          channel.sink.add('');
         });
 
         addTearDown(server.close);
@@ -79,7 +79,7 @@ void main() {
         server = await io.HttpServer.bind('localhost', port);
         server.transform(io.WebSocketTransformer()).listen((webSocket) {
           final channel = IOWebSocketChannel(webSocket);
-          channel.sink.add('pong');
+          channel.sink.add('');
         });
         addTearDown(server.close);
 
@@ -98,7 +98,7 @@ void main() {
         server = await io.HttpServer.bind('localhost', port);
         server.transform(io.WebSocketTransformer()).listen((webSocket) {
           channel = IOWebSocketChannel(webSocket);
-          channel!.sink.add('pong');
+          channel!.sink.add('');
         });
         addTearDown(server.close);
 
@@ -127,7 +127,7 @@ void main() {
         server = await io.HttpServer.bind('localhost', port);
         server.transform(io.WebSocketTransformer()).listen((webSocket) {
           channel = IOWebSocketChannel(webSocket);
-          channel!.sink.add('pong');
+          channel!.sink.add('');
         });
 
         await expectLater(
@@ -150,7 +150,7 @@ void main() {
         server = await io.HttpServer.bind('localhost', 0);
         server.transform(io.WebSocketTransformer()).listen((webSocket) {
           final channel = IOWebSocketChannel(webSocket);
-          channel.sink.add('pong');
+          channel.sink.add('');
         });
         addTearDown(() => server.close(force: true));
 
@@ -201,6 +201,35 @@ void main() {
 
         expect(messages, isEmpty);
       });
+
+      test('emits messages when connection is open', () async {
+        server = await io.HttpServer.bind('localhost', 0);
+        server.transform(io.WebSocketTransformer()).listen((webSocket) {
+          final channel = IOWebSocketChannel(webSocket);
+          channel.sink
+            ..add('ping')
+            ..add('pong');
+        });
+        addTearDown(server.close);
+
+        final messages = <dynamic>[];
+        final socket = WebSocket(
+          uri: Uri.parse('ws://localhost:${server.port}'),
+          backoff: const ConstantBackoff(Duration.zero),
+        )..messages.listen(messages.add);
+
+        await expectLater(
+          socket.readyStates,
+          emitsInOrder([
+            WebSocketReadyState.connecting,
+            WebSocketReadyState.open,
+          ]),
+        );
+
+        expect(messages, equals(['ping', 'pong']));
+
+        socket.close();
+      });
     });
 
     group('send', () {
@@ -210,6 +239,40 @@ void main() {
           backoff: const ConstantBackoff(Duration.zero),
         );
         expect(() => socket.send(null), returnsNormally);
+
+        socket.close();
+      });
+
+      test('sends message when connection is open', () async {
+        final messages = <dynamic>[];
+        server = await io.HttpServer.bind('localhost', 0);
+        server.transform(io.WebSocketTransformer()).listen((webSocket) {
+          final channel = IOWebSocketChannel(webSocket);
+          channel.stream.listen(messages.add);
+          channel.sink.add('');
+        });
+        addTearDown(server.close);
+
+        final socket = WebSocket(
+          uri: Uri.parse('ws://localhost:${server.port}'),
+          backoff: const ConstantBackoff(Duration.zero),
+        );
+
+        await expectLater(
+          socket.readyStates,
+          emitsInOrder([
+            WebSocketReadyState.connecting,
+            WebSocketReadyState.open,
+          ]),
+        );
+
+        socket
+          ..send('ping')
+          ..send('pong');
+
+        await Future<void>.delayed(Duration.zero);
+
+        expect(messages, equals(['ping', 'pong']));
 
         socket.close();
       });
