@@ -70,28 +70,27 @@ class WebSocket {
       _reconnect();
     }
 
-    late final io.WebSocket ws;
     try {
-      ws = await io.WebSocket.connect(
+      final ws = await io.WebSocket.connect(
         uri.toString(),
         protocols: _protocols,
       ).timeout(_timeout);
+
+      if (_readyState.isNotConnected) _readyState = ReadyState.open;
+
+      ws
+        ..pingInterval = _pingInterval
+        ..listen(
+          _messageController.add,
+          onDone: attemptToReconnect,
+          cancelOnError: true,
+        );
+
+      _channel = getWebSocketChannel(ws);
+      _subscription?.cancel().ignore();
     } catch (_) {
-      return attemptToReconnect();
+      attemptToReconnect();
     }
-
-    if (_readyState.isNotConnected) _readyState = ReadyState.open;
-
-    ws
-      ..pingInterval = _pingInterval
-      ..listen(
-        _messageController.add,
-        onDone: attemptToReconnect,
-        cancelOnError: true,
-      );
-
-    _channel = getWebSocketChannel(ws);
-    _subscription?.cancel().ignore();
   }
 
   Future<void> _reconnect() async {
