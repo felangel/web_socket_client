@@ -1,26 +1,25 @@
 // ignore_for_file: avoid_print
-
 import 'package:web_socket_client/web_socket_client.dart';
 
 void main() async {
-  var receivedMessage = false;
-
   // Create a WebSocket client.
-  final socket = WebSocket(uri: Uri.parse('ws://localhost:8080/ws'));
+  final uri = Uri.parse('ws://localhost:8080');
+  const backoff = ConstantBackoff(Duration(seconds: 1));
+  final socket = WebSocket(uri: uri, backoff: backoff);
 
-  // Listen to changes in the ready state.
+  // Listen for changes in the ready state.
   socket.readyStates.listen((state) => print('connection: "$state"'));
 
-  // Listen to incoming messages.
+  // Listen for incoming messages.
   socket.messages.listen((message) {
     print('message: "$message"');
-    if (!receivedMessage) {
-      receivedMessage = true;
-      socket
-        // Send a message to the server.
-        ..send('pong')
-        // Close the connection.
-        ..close();
-    }
+    // Close the connection.
+    socket.close();
   });
+
+  /// Wait for a connection to be established.
+  await socket.readyStates.firstWhere((state) => state == ReadyState.open);
+
+  // Send a message to the server.
+  socket.send('ping');
 }

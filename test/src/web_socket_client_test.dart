@@ -22,11 +22,11 @@ void main() {
         await expectLater(
           socket.readyStates,
           emitsInOrder([
-            WebSocketReadyState.connecting,
-            WebSocketReadyState.closed,
+            ReadyState.connecting,
+            ReadyState.closed,
           ]),
         );
-        expect(socket.readyState, equals(WebSocketReadyState.closed));
+        expect(socket.readyState, equals(ReadyState.closed));
 
         socket.close();
       });
@@ -43,11 +43,11 @@ void main() {
         await expectLater(
           socket.readyStates,
           emitsInOrder([
-            WebSocketReadyState.connecting,
-            WebSocketReadyState.open,
+            ReadyState.connecting,
+            ReadyState.open,
           ]),
         );
-        expect(socket.readyState, equals(WebSocketReadyState.open));
+        expect(socket.readyState, equals(ReadyState.open));
 
         socket.close();
       });
@@ -64,16 +64,16 @@ void main() {
         await expectLater(
           socket.readyStates,
           emitsInOrder([
-            WebSocketReadyState.connecting,
-            WebSocketReadyState.closed,
+            ReadyState.connecting,
+            ReadyState.closed,
           ]),
         );
 
-        expect(socket.readyState, equals(WebSocketReadyState.closed));
+        expect(socket.readyState, equals(ReadyState.closed));
         server = await createWebSocketServer(port: port);
 
         await Future<void>.delayed(const Duration(milliseconds: 100));
-        expect(socket.readyState, equals(WebSocketReadyState.open));
+        expect(socket.readyState, equals(ReadyState.open));
 
         socket.close();
       });
@@ -97,17 +97,17 @@ void main() {
         await expectLater(
           socket.readyStates,
           emitsInOrder([
-            WebSocketReadyState.connecting,
-            WebSocketReadyState.open,
+            ReadyState.connecting,
+            ReadyState.open,
           ]),
         );
 
-        expect(socket.readyState, equals(WebSocketReadyState.open));
+        expect(socket.readyState, equals(ReadyState.open));
 
         await channel!.sink.close();
         await server!.close(force: true);
 
-        expect(socket.readyState, equals(WebSocketReadyState.closed));
+        expect(socket.readyState, equals(ReadyState.closed));
 
         server = await createWebSocketServer(
           port: port,
@@ -117,12 +117,12 @@ void main() {
         await expectLater(
           socket.readyStates,
           emitsInOrder([
-            WebSocketReadyState.closed,
-            WebSocketReadyState.open,
+            ReadyState.closed,
+            ReadyState.open,
           ]),
         );
 
-        expect(socket.readyState, equals(WebSocketReadyState.open));
+        expect(socket.readyState, equals(ReadyState.open));
 
         await channel!.sink.close();
         await server!.close(force: true);
@@ -134,7 +134,7 @@ void main() {
           'when close is called after establishing a connection.', () async {
         server = await createWebSocketServer();
 
-        final readyStates = <WebSocketReadyState>[];
+        final readyStates = <ReadyState>[];
         final socket = WebSocket(
           uri: Uri.parse('ws://localhost:${server!.port}'),
           backoff: const ConstantBackoff(Duration.zero),
@@ -143,8 +143,8 @@ void main() {
         await expectLater(
           socket.readyStates,
           emitsInOrder([
-            WebSocketReadyState.connecting,
-            WebSocketReadyState.open,
+            ReadyState.connecting,
+            ReadyState.open,
           ]),
         );
 
@@ -155,13 +155,13 @@ void main() {
         await expectLater(
           readyStates,
           equals([
-            WebSocketReadyState.connecting,
-            WebSocketReadyState.open,
-            WebSocketReadyState.closing,
-            WebSocketReadyState.closed,
+            ReadyState.connecting,
+            ReadyState.open,
+            ReadyState.closing,
+            ReadyState.closed,
           ]),
         );
-        expect(socket.readyState, equals(WebSocketReadyState.closed));
+        expect(socket.readyState, equals(ReadyState.closed));
       });
     });
 
@@ -200,8 +200,8 @@ void main() {
         await expectLater(
           socket.readyStates,
           emitsInOrder([
-            WebSocketReadyState.connecting,
-            WebSocketReadyState.open,
+            ReadyState.connecting,
+            ReadyState.open,
           ]),
         );
 
@@ -238,8 +238,8 @@ void main() {
         await expectLater(
           socket.readyStates,
           emitsInOrder([
-            WebSocketReadyState.connecting,
-            WebSocketReadyState.open,
+            ReadyState.connecting,
+            ReadyState.open,
           ]),
         );
 
@@ -262,14 +262,14 @@ void main() {
         await expectLater(
           socket.readyStates,
           emitsInOrder([
-            WebSocketReadyState.connecting,
-            WebSocketReadyState.closed,
+            ReadyState.connecting,
+            ReadyState.closed,
           ]),
         );
 
-        expect(socket.readyState, equals(WebSocketReadyState.closed));
+        expect(socket.readyState, equals(ReadyState.closed));
         expect(socket.close, returnsNormally);
-        expect(socket.readyState, equals(WebSocketReadyState.closed));
+        expect(socket.readyState, equals(ReadyState.closed));
       });
     });
   });

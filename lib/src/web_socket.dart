@@ -13,6 +13,9 @@ final _defaultBackoff = BinaryExponentialBackoff(
   maximumStep: 7,
 );
 
+/// The default connection timeout duration.
+const _defaultTimeout = Duration(seconds: 60);
+
 /// {@template web_socket}
 /// A reusable WebSocket client for Dart.
 /// {@endtemplate}
@@ -23,9 +26,11 @@ class WebSocket {
     Iterable<String>? protocols,
     Backoff? backoff,
     Duration? pingInterval,
+    Duration? timeout,
   })  : _protocols = protocols,
         _backoff = backoff ?? _defaultBackoff,
-        _pingInterval = pingInterval {
+        _pingInterval = pingInterval,
+        _timeout = timeout ?? _defaultTimeout {
     _connect();
   }
 
@@ -34,19 +39,19 @@ class WebSocket {
   final Iterable<String>? _protocols;
   final Backoff _backoff;
   final Duration? _pingInterval;
+  final Duration _timeout;
 
   final _messageController = StreamController.broadcast();
-  final _readyStateController =
-      StreamController<WebSocketReadyState>.broadcast();
+  final _readyStateController = StreamController<ReadyState>.broadcast();
 
   StreamSubscription<dynamic>? _subscription;
   Timer? _backoffTimer;
 
-  var __readyState = WebSocketReadyState.connecting;
+  var __readyState = ReadyState.connecting;
 
-  WebSocketReadyState get _readyState => __readyState;
+  ReadyState get _readyState => __readyState;
 
-  set _readyState(WebSocketReadyState state) {
+  set _readyState(ReadyState state) {
     __readyState = state;
     _readyStateController.add(state);
   }
@@ -59,11 +64,10 @@ class WebSocket {
     if (_readyState.isConnected) return;
 
     void attemptToReconnect() {
-      if (!_isClosed && !_isReconnecting) {
-        _channel = null;
-        _readyState = WebSocketReadyState.closed;
-        _reconnect();
-      }
+      if (_isClosed || _isReconnecting) return;
+      _channel = null;
+      _readyState = ReadyState.closed;
+      _reconnect();
     }
 
     late final io.WebSocket ws;
@@ -71,12 +75,12 @@ class WebSocket {
       ws = await io.WebSocket.connect(
         uri.toString(),
         protocols: _protocols,
-      );
+      ).timeout(_timeout);
     } catch (_) {
       return attemptToReconnect();
     }
 
-    if (_readyState.isNotConnected) _readyState = WebSocketReadyState.open;
+    if (_readyState.isNotConnected) _readyState = ReadyState.open;
 
     ws
       ..pingInterval = _pingInterval
@@ -109,11 +113,11 @@ class WebSocket {
   /// The stream of messages received from the WebSocket server.
   Stream<dynamic> get messages => _messageController.stream;
 
-  /// The current [WebSocketReadyState].
-  WebSocketReadyState get readyState => _readyState;
+  /// The current [ReadyState].
+  ReadyState get readyState => _readyState;
 
-  /// A distinct stream of the [WebSocketReadyState].
-  Stream<WebSocketReadyState> get readyStates async* {
+  /// A distinct stream of the [ReadyState].
+  Stream<ReadyState> get readyStates async* {
     yield _readyState;
     yield* _readyStateController.stream.distinct();
   }
@@ -124,13 +128,13 @@ class WebSocket {
 
   /// Closes the connection and frees any resources.
   void close([int? code, String? reason]) {
-    if (_readyState == WebSocketReadyState.closed) return;
-    _readyState = WebSocketReadyState.closing;
+    if (_readyState == ReadyState.closed) return;
+    _readyState = ReadyState.closing;
     _backoffTimer?.cancel();
     Future.wait<void>([
       if (_channel != null) _channel!.sink.close(code, reason),
     ]).whenComplete(() {
-      _readyState = WebSocketReadyState.closed;
+      _readyState = ReadyState.closed;
       _messageController.close();
       _subscription?.cancel();
       _readyStateController.close();
@@ -139,10 +143,9 @@ class WebSocket {
   }
 }
 
-extension on WebSocketReadyState {
+extension on ReadyState {
   bool get isConnected {
-    return this == WebSocketReadyState.open ||
-        this == WebSocketReadyState.closing;
+    return this == ReadyState.open || this == ReadyState.closing;
   }
 
   bool get isNotConnected => !isConnected;
