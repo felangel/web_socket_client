@@ -1,6 +1,10 @@
 import 'dart:async';
+import 'dart:io' as io;
 
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_client/src/_web_socket_channel/_web_socket_channel.dart'
+    if (dart.library.io) 'package:web_socket_client/src/_web_socket_channel/_web_socket_channel_io.dart'
+    if (dart.library.html) 'package:web_socket_client/src/_web_socket_channel/_web_socket_channel_html.dart';
 import 'package:web_socket_client/web_socket_client.dart';
 
 /// The default backoff strategy.
@@ -18,8 +22,10 @@ class WebSocket {
     required this.uri,
     Iterable<String>? protocols,
     Backoff? backoff,
+    Duration? pingInterval,
   })  : _protocols = protocols,
-        _backoff = backoff ?? _defaultBackoff {
+        _backoff = backoff ?? _defaultBackoff,
+        _pingInterval = pingInterval {
     _connect();
   }
 
@@ -27,6 +33,7 @@ class WebSocket {
   final Uri uri;
   final Iterable<String>? _protocols;
   final Backoff _backoff;
+  final Duration? _pingInterval;
 
   final _messageController = StreamController.broadcast();
   final _readyStateController =
@@ -46,36 +53,41 @@ class WebSocket {
 
   WebSocketChannel? _channel;
   bool _isReconnecting = false;
+  bool _isClosed = false;
 
   Future<void> _connect() async {
     if (_readyState.isConnected) return;
 
-    final completer = Completer<void>();
-
-    _channel = WebSocketChannel.connect(uri, protocols: _protocols);
-
     void attemptToReconnect() {
-      if (!completer.isCompleted) completer.complete();
-      if (!_isReconnecting) {
+      if (!_isClosed && !_isReconnecting) {
         _channel = null;
         _readyState = WebSocketReadyState.closed;
         _reconnect();
       }
     }
 
-    _subscription?.cancel().ignore();
-    _subscription = _channel!.stream.listen(
-      (message) {
-        if (!completer.isCompleted) completer.complete();
-        if (_readyState.isNotConnected) _readyState = WebSocketReadyState.open;
-        _messageController.add(message);
-      },
-      onError: (_, __) => attemptToReconnect(),
-      onDone: attemptToReconnect,
-      cancelOnError: false,
-    );
+    late final io.WebSocket ws;
+    try {
+      ws = await io.WebSocket.connect(
+        uri.toString(),
+        protocols: _protocols,
+      );
+    } catch (_) {
+      return attemptToReconnect();
+    }
 
-    return completer.future;
+    if (_readyState.isNotConnected) _readyState = WebSocketReadyState.open;
+
+    ws
+      ..pingInterval = _pingInterval
+      ..listen(
+        _messageController.add,
+        onDone: attemptToReconnect,
+        cancelOnError: true,
+      );
+
+    _channel = getWebSocketChannel(ws);
+    _subscription?.cancel().ignore();
   }
 
   Future<void> _reconnect() async {
@@ -122,6 +134,7 @@ class WebSocket {
       _messageController.close();
       _subscription?.cancel();
       _readyStateController.close();
+      _isClosed = true;
     });
   }
 }

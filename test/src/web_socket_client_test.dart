@@ -9,7 +9,9 @@ import 'package:web_socket_client/web_socket_client.dart';
 void main() {
   group('WebSocket', () {
     final uri = Uri.parse('ws://localhost:8080');
-    io.HttpServer server;
+    io.HttpServer? server;
+
+    tearDown(() => server?.close());
 
     group('readyStates', () {
       test(
@@ -32,16 +34,9 @@ void main() {
       test(
           'emits [connecting, open] '
           'when able to establish a connection.', () async {
-        server = await io.HttpServer.bind('localhost', 0);
-        server.transform(io.WebSocketTransformer()).listen((webSocket) {
-          final channel = IOWebSocketChannel(webSocket);
-          channel.sink.add('');
-        });
-
-        addTearDown(server.close);
-
+        server = await createWebSocketServer();
         final socket = WebSocket(
-          uri: Uri.parse('ws://localhost:${server.port}'),
+          uri: Uri.parse('ws://localhost:${server!.port}'),
           backoff: const ConstantBackoff(Duration.zero),
         );
 
@@ -75,13 +70,7 @@ void main() {
         );
 
         expect(socket.readyState, equals(WebSocketReadyState.closed));
-
-        server = await io.HttpServer.bind('localhost', port);
-        server.transform(io.WebSocketTransformer()).listen((webSocket) {
-          final channel = IOWebSocketChannel(webSocket);
-          channel.sink.add('');
-        });
-        addTearDown(server.close);
+        server = await createWebSocketServer(port: port);
 
         await Future<void>.delayed(const Duration(milliseconds: 100));
         expect(socket.readyState, equals(WebSocketReadyState.open));
@@ -95,12 +84,10 @@ void main() {
         const port = 8080;
 
         WebSocketChannel? channel;
-        server = await io.HttpServer.bind('localhost', port);
-        server.transform(io.WebSocketTransformer()).listen((webSocket) {
-          channel = IOWebSocketChannel(webSocket);
-          channel!.sink.add('');
-        });
-        addTearDown(server.close);
+        server = await createWebSocketServer(
+          port: port,
+          onConnection: (c) => channel = c,
+        );
 
         final socket = WebSocket(
           uri: Uri.parse('ws://localhost:$port'),
@@ -118,17 +105,14 @@ void main() {
         expect(socket.readyState, equals(WebSocketReadyState.open));
 
         await channel!.sink.close();
-        await server.close(force: true);
-
-        await Future<void>.delayed(Duration.zero);
+        await server!.close(force: true);
 
         expect(socket.readyState, equals(WebSocketReadyState.closed));
 
-        server = await io.HttpServer.bind('localhost', port);
-        server.transform(io.WebSocketTransformer()).listen((webSocket) {
-          channel = IOWebSocketChannel(webSocket);
-          channel!.sink.add('');
-        });
+        server = await createWebSocketServer(
+          port: port,
+          onConnection: (c) => channel = c,
+        );
 
         await expectLater(
           socket.readyStates,
@@ -137,26 +121,22 @@ void main() {
             WebSocketReadyState.open,
           ]),
         );
+
         expect(socket.readyState, equals(WebSocketReadyState.open));
 
         await channel!.sink.close();
-        await server.close(force: true);
+        await server!.close(force: true);
         socket.close();
       });
 
       test(
           'emits [connecting, open, closing, closed] '
           'when close is called after establishing a connection.', () async {
-        server = await io.HttpServer.bind('localhost', 0);
-        server.transform(io.WebSocketTransformer()).listen((webSocket) {
-          final channel = IOWebSocketChannel(webSocket);
-          channel.sink.add('');
-        });
-        addTearDown(() => server.close(force: true));
+        server = await createWebSocketServer();
 
         final readyStates = <WebSocketReadyState>[];
         final socket = WebSocket(
-          uri: Uri.parse('ws://localhost:${server.port}'),
+          uri: Uri.parse('ws://localhost:${server!.port}'),
           backoff: const ConstantBackoff(Duration.zero),
         )..readyStates.listen(readyStates.add);
 
@@ -170,7 +150,7 @@ void main() {
 
         socket.close();
 
-        await Future<void>.delayed(Duration.zero);
+        await server!.close();
 
         await expectLater(
           readyStates,
@@ -203,18 +183,17 @@ void main() {
       });
 
       test('emits messages when connection is open', () async {
-        server = await io.HttpServer.bind('localhost', 0);
-        server.transform(io.WebSocketTransformer()).listen((webSocket) {
-          final channel = IOWebSocketChannel(webSocket);
-          channel.sink
-            ..add('ping')
-            ..add('pong');
-        });
-        addTearDown(server.close);
+        server = await createWebSocketServer(
+          onConnection: (channel) {
+            channel.sink
+              ..add('ping')
+              ..add('pong');
+          },
+        );
 
         final messages = <dynamic>[];
         final socket = WebSocket(
-          uri: Uri.parse('ws://localhost:${server.port}'),
+          uri: Uri.parse('ws://localhost:${server!.port}'),
           backoff: const ConstantBackoff(Duration.zero),
         )..messages.listen(messages.add);
 
@@ -245,16 +224,14 @@ void main() {
 
       test('sends message when connection is open', () async {
         final messages = <dynamic>[];
-        server = await io.HttpServer.bind('localhost', 0);
-        server.transform(io.WebSocketTransformer()).listen((webSocket) {
-          final channel = IOWebSocketChannel(webSocket);
-          channel.stream.listen(messages.add);
-          channel.sink.add('');
-        });
-        addTearDown(server.close);
+        server = await createWebSocketServer(
+          onConnection: (channel) {
+            channel.stream.listen(messages.add);
+          },
+        );
 
         final socket = WebSocket(
-          uri: Uri.parse('ws://localhost:${server.port}'),
+          uri: Uri.parse('ws://localhost:${server!.port}'),
           backoff: const ConstantBackoff(Duration.zero),
         );
 
@@ -296,4 +273,15 @@ void main() {
       });
     });
   });
+}
+
+Future<io.HttpServer> createWebSocketServer({
+  void Function(WebSocketChannel channel)? onConnection,
+  int port = 0,
+}) async {
+  final server = await io.HttpServer.bind('localhost', port);
+  server.transform(io.WebSocketTransformer()).listen((webSocket) {
+    if (onConnection != null) onConnection(IOWebSocketChannel(webSocket));
+  });
+  return server;
 }
