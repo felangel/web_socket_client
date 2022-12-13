@@ -3,4 +3,5 @@ library web_socket_client;
 
 export 'src/backoff/backoff.dart' show Backoff;
 export 'src/backoff/constant_backoff.dart' show ConstantBackoff;
+export 'src/backoff/linear_backoff.dart' show LinearBackoff;
 export 'src/web_socket_client.dart' show WebSocketClient;
