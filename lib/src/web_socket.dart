@@ -22,23 +22,23 @@ const _defaultTimeout = Duration(seconds: 60);
 class WebSocket {
   /// {@macro web_socket}
   WebSocket({
-    required this.uri,
+    required Uri uri,
     Iterable<String>? protocols,
-    Backoff? backoff,
     Duration? pingInterval,
+    Backoff? backoff,
     Duration? timeout,
-  })  : _protocols = protocols,
-        _backoff = backoff ?? _defaultBackoff,
+  })  : _uri = uri,
+        _protocols = protocols,
         _pingInterval = pingInterval,
+        _backoff = backoff ?? _defaultBackoff,
         _timeout = timeout ?? _defaultTimeout {
     _connect();
   }
 
-  /// The [Uri] that was used to establish the WebSocket connection.
-  final Uri uri;
+  final Uri _uri;
   final Iterable<String>? _protocols;
-  final Backoff _backoff;
   final Duration? _pingInterval;
+  final Backoff _backoff;
   final Duration _timeout;
 
   final _messageController = StreamController.broadcast();
@@ -71,7 +71,7 @@ class WebSocket {
 
     try {
       final ws = await io.WebSocket.connect(
-        uri.toString(),
+        _uri.toString(),
         protocols: _protocols,
       ).timeout(_timeout);
 
