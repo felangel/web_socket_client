@@ -67,7 +67,7 @@ class WebSocket {
     _subscription = _channel!.stream.listen(
       (message) {
         if (!completer.isCompleted) completer.complete();
-        if (!_readyState.isConnected) _readyState = WebSocketReadyState.open;
+        if (_readyState.isNotConnected) _readyState = WebSocketReadyState.open;
         _messageController.add(message);
       },
       onError: (_, __) => attemptToReconnect(),
@@ -79,11 +79,6 @@ class WebSocket {
   }
 
   Future<void> _reconnect() async {
-    if (_readyState.isConnected) {
-      _isReconnecting = false;
-      return;
-    }
-
     _isReconnecting = true;
 
     await _connect();
@@ -106,8 +101,9 @@ class WebSocket {
   WebSocketReadyState get readyState => _readyState;
 
   /// A distinct stream of the [WebSocketReadyState].
-  Stream<WebSocketReadyState> get readyStates {
-    return _readyStateController.stream.distinct();
+  Stream<WebSocketReadyState> get readyStates async* {
+    yield _readyState;
+    yield* _readyStateController.stream.distinct();
   }
 
   /// Enqueues the specified data to be transmitted
