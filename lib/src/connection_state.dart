@@ -9,7 +9,7 @@ abstract class ConnectionState {
 }
 
 /// {@template connecting}
-/// The connection has not yet been established.
+/// The WebSocket connection has not yet been established.
 /// {@endtemplate}
 class Connecting extends ConnectionState {
   /// {@macro connecting}
@@ -41,7 +41,8 @@ class Connected extends ConnectionState {
 }
 
 /// {@template reconnecting}
-/// The connection was lost and is in the process of being re-established.
+/// The WebSocket connection was lost
+/// and is in the process of being re-established.
 /// {@endtemplate}
 class Reconnecting extends ConnectionState {
   /// {@macro reconnecting}
@@ -57,7 +58,7 @@ class Reconnecting extends ConnectionState {
 }
 
 /// {@template reconnected}
-/// The connection was lost and has been re-established.
+/// The WebSocket connection was lost and has been re-established.
 /// {@endtemplate}
 class Reconnected extends ConnectionState {
   /// {@macro reconnected}
