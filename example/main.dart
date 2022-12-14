@@ -3,14 +3,12 @@ import 'package:web_socket_client/web_socket_client.dart';
 
 void main() async {
   // Create a WebSocket client.
-  final uri = Uri.parse('ws://localhost:8080/ws');
+  final uri = Uri.parse('ws://localhost:8080');
   const backoff = ConstantBackoff(Duration(seconds: 1));
   final socket = WebSocket(uri, backoff: backoff);
 
   // Listen for changes in the connection state.
   socket.connection.listen((state) => print('state: "$state"'));
-
-  print('current connection: ${socket.connection.state}');
 
   // Listen for incoming messages.
   socket.messages.listen((message) {
