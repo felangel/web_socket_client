@@ -9,7 +9,7 @@ abstract class ConnectionState {
 }
 
 /// {@template connecting}
-/// The connection has not yet been established.
+/// The WebSocket connection has not yet been established.
 /// {@endtemplate}
 class Connecting extends ConnectionState {
   /// {@macro connecting}
@@ -41,7 +41,8 @@ class Connected extends ConnectionState {
 }
 
 /// {@template reconnecting}
-/// The connection was lost and is in the process of being re-established.
+/// The WebSocket connection was lost
+/// and is in the process of being re-established.
 /// {@endtemplate}
 class Reconnecting extends ConnectionState {
   /// {@macro reconnecting}
@@ -57,7 +58,7 @@ class Reconnecting extends ConnectionState {
 }
 
 /// {@template reconnected}
-/// The connection was lost and has been re-established.
+/// The WebSocket connection was lost and has been re-established.
 /// {@endtemplate}
 class Reconnected extends ConnectionState {
   /// {@macro reconnected}
@@ -73,7 +74,7 @@ class Reconnected extends ConnectionState {
 }
 
 /// {@template disconnecting}
-/// The connection is going through the closing handshake,
+/// The WebSocket connection is going through the closing handshake,
 /// or the close() method has been invoked.
 /// {@endtemplate}
 class Disconnecting extends ConnectionState {
@@ -90,7 +91,7 @@ class Disconnecting extends ConnectionState {
 }
 
 /// {@template disconnected}
-/// The connection has been closed or could not be established.
+/// The WebSocket connection has been closed or could not be established.
 /// {@endtemplate}
 class Disconnected extends ConnectionState {
   /// {@macro disconnected}

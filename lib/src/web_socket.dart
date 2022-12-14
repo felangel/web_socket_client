@@ -1,10 +1,12 @@
 import 'dart:async';
-import 'dart:io' as io;
 
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_client/src/_web_socket_channel/_web_socket_channel.dart'
     if (dart.library.io) 'package:web_socket_client/src/_web_socket_channel/_web_socket_channel_io.dart'
     if (dart.library.html) 'package:web_socket_client/src/_web_socket_channel/_web_socket_channel_html.dart';
+import 'package:web_socket_client/src/_web_socket_connect/_web_socket_connect.dart'
+    if (dart.library.io) 'package:web_socket_client/src/_web_socket_connect/_web_socket_connect_io.dart'
+    if (dart.library.html) 'package:web_socket_client/src/_web_socket_connect/_web_socket_connect_html.dart';
 import 'package:web_socket_client/src/connection.dart';
 import 'package:web_socket_client/web_socket_client.dart';
 
@@ -69,7 +71,7 @@ class WebSocket {
   Future<void> _connect() async {
     if (_isConnected) return;
 
-    void attemptToReconnect({Object? error, StackTrace? stackTrace}) {
+    void attemptToReconnect([Object? error, StackTrace? stackTrace]) {
       if (_isClosedByClient || _isReconnecting || _isDisconnecting) return;
       _connectionController.add(
         Disconnected(
@@ -84,9 +86,10 @@ class WebSocket {
     }
 
     try {
-      final ws = await io.WebSocket.connect(
+      final ws = await connect(
         _uri.toString(),
         protocols: _protocols,
+        pingInterval: _pingInterval,
       ).timeout(_timeout);
 
       final connectionState = _connectionController.state;
@@ -96,17 +99,14 @@ class WebSocket {
         _connectionController.add(const Connected());
       }
 
-      ws
-        ..pingInterval = _pingInterval
-        ..listen(
-          _messageController.add,
-          onDone: attemptToReconnect,
-          cancelOnError: true,
-        );
-
       _channel = getWebSocketChannel(ws);
+      _channel!.stream.listen(
+        _messageController.add,
+        onDone: attemptToReconnect,
+        cancelOnError: true,
+      );
     } catch (error, stackTrace) {
-      attemptToReconnect(error: error, stackTrace: stackTrace);
+      attemptToReconnect(error, stackTrace);
     }
   }
 
