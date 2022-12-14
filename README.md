@@ -1,6 +1,7 @@
 # WebSocket Client
 
-[![build][build_badge]][build_link] [![coverage][coverage_badge]][build_link]
+[![build][build_badge]][build_link]
+[![coverage][coverage_badge]][build_link]
 [![pub package][pub_badge]][pub_link]
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![License: MIT][license_badge]][license_link]
