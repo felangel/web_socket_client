@@ -8,31 +8,39 @@ import 'package:web_socket_client/web_socket_client.dart';
 
 void main() {
   group('WebSocket', () {
-    final uri = Uri.parse('ws://localhost:8080');
+    const port = 8080;
+    const closeCode = 4200;
+    const closeReason = '__reason__';
+    final uri = Uri.parse('ws://localhost:$port');
+
     io.HttpServer? server;
 
-    tearDown(() => server?.close());
+    tearDown(() => server?.close(force: true));
 
-    group('readyStates', () {
+    group('connection', () {
       test(
-          'emits [connecting, closed] '
+          'emits [connecting, disconnected, reconnecting] '
           'when not able to establish a connection.', () async {
         final socket = WebSocket(uri);
 
         await expectLater(
-          socket.readyStates,
+          socket.connection,
           emitsInOrder([
-            ReadyState.connecting,
-            ReadyState.closed,
+            const Connecting(),
+            isDisconnected(
+              whereError: isA<io.SocketException>(),
+              whereStackTrace: isNotNull,
+            ),
+            const Reconnecting(),
           ]),
         );
-        expect(socket.readyState, equals(ReadyState.closed));
+        expect(socket.connection.state, equals(const Reconnecting()));
 
         socket.close();
       });
 
       test(
-          'emits [connecting, open] '
+          'emits [connecting, connected] '
           'when able to establish a connection.', () async {
         server = await createWebSocketServer();
         final socket = WebSocket(
@@ -41,73 +49,85 @@ void main() {
         );
 
         await expectLater(
-          socket.readyStates,
+          socket.connection,
           emitsInOrder([
-            ReadyState.connecting,
-            ReadyState.open,
+            const Connecting(),
+            const Connected(),
           ]),
         );
-        expect(socket.readyState, equals(ReadyState.open));
+        expect(socket.connection.state, equals(const Connected()));
 
         socket.close();
       });
 
       test(
-          'emits [connecting, open] '
+          'emits [connecting, disconnected, reconnecting, reconnected] '
           'when able to establish a connection after retries.', () async {
-        const port = 8080;
         final socket = WebSocket(
           Uri.parse('ws://localhost:$port'),
           backoff: const ConstantBackoff(Duration.zero),
         );
 
         await expectLater(
-          socket.readyStates,
+          socket.connection,
           emitsInOrder([
-            ReadyState.connecting,
-            ReadyState.closed,
+            const Connecting(),
+            isDisconnected(
+              whereError: isA<io.SocketException>(),
+              whereStackTrace: isNotNull,
+            ),
+            const Reconnecting(),
           ]),
         );
 
-        expect(socket.readyState, equals(ReadyState.closed));
+        expect(socket.connection.state, equals(const Reconnecting()));
         server = await createWebSocketServer(port: port);
 
         await Future<void>.delayed(const Duration(milliseconds: 100));
-        expect(socket.readyState, equals(ReadyState.open));
+        expect(socket.connection.state, equals(const Reconnected()));
 
         socket.close();
       });
 
       test(
-          'emits [connecting, open] '
+          'emits [connecting, connected, reconnecting, reconnected] '
           'when able to re-establish a connection.', () async {
-        const port = 8080;
-
         WebSocketChannel? channel;
         server = await createWebSocketServer(
           port: port,
           onConnection: (c) => channel = c,
         );
 
+        final connectionStates = <ConnectionState>[];
+
         final socket = WebSocket(
           Uri.parse('ws://localhost:$port'),
           backoff: const ConstantBackoff(Duration.zero),
-        );
+        )..connection.listen(connectionStates.add);
 
         await expectLater(
-          socket.readyStates,
+          socket.connection,
           emitsInOrder([
-            ReadyState.connecting,
-            ReadyState.open,
+            const Connecting(),
+            const Connected(),
           ]),
         );
 
-        expect(socket.readyState, equals(ReadyState.open));
+        expect(socket.connection.state, equals(const Connected()));
 
-        await channel!.sink.close();
+        await channel!.sink.close(closeCode, closeReason);
         await server!.close(force: true);
 
-        expect(socket.readyState, equals(ReadyState.closed));
+        expect(
+          connectionStates,
+          equals([
+            const Connecting(),
+            const Connected(),
+            const Disconnected(code: closeCode, reason: closeReason),
+            const Reconnecting(),
+          ]),
+        );
+        expect(socket.connection.state, equals(const Reconnecting()));
 
         server = await createWebSocketServer(
           port: port,
@@ -115,14 +135,14 @@ void main() {
         );
 
         await expectLater(
-          socket.readyStates,
+          socket.connection,
           emitsInOrder([
-            ReadyState.closed,
-            ReadyState.open,
+            const Reconnecting(),
+            const Reconnected(),
           ]),
         );
 
-        expect(socket.readyState, equals(ReadyState.open));
+        expect(socket.connection.state, equals(const Reconnected()));
 
         await channel!.sink.close();
         await server!.close(force: true);
@@ -130,38 +150,43 @@ void main() {
       });
 
       test(
-          'emits [connecting, open, closing, closed] '
+          'emits [connecting, connected, disconnecting, disconnected] '
           'when close is called after establishing a connection.', () async {
         server = await createWebSocketServer();
 
-        final readyStates = <ReadyState>[];
+        final connectionStates = <ConnectionState>[];
         final socket = WebSocket(
           Uri.parse('ws://localhost:${server!.port}'),
           backoff: const ConstantBackoff(Duration.zero),
-        )..readyStates.listen(readyStates.add);
+        )..connection.listen(connectionStates.add);
 
         await expectLater(
-          socket.readyStates,
+          socket.connection,
           emitsInOrder([
-            ReadyState.connecting,
-            ReadyState.open,
+            const Connecting(),
+            const Connected(),
           ]),
         );
 
-        socket.close();
+        socket.close(closeCode, closeReason);
 
         await server!.close();
 
         await expectLater(
-          readyStates,
+          connectionStates,
           equals([
-            ReadyState.connecting,
-            ReadyState.open,
-            ReadyState.closing,
-            ReadyState.closed,
+            const Connecting(),
+            const Connected(),
+            const Disconnecting(),
+            const Disconnected(code: closeCode, reason: closeReason),
           ]),
         );
-        expect(socket.readyState, equals(ReadyState.closed));
+        expect(
+          socket.connection.state,
+          equals(
+            const Disconnected(code: closeCode, reason: closeReason),
+          ),
+        );
       });
     });
 
@@ -198,10 +223,10 @@ void main() {
         )..messages.listen(messages.add);
 
         await expectLater(
-          socket.readyStates,
+          socket.connection,
           emitsInOrder([
-            ReadyState.connecting,
-            ReadyState.open,
+            const Connecting(),
+            const Connected(),
           ]),
         );
 
@@ -236,10 +261,10 @@ void main() {
         );
 
         await expectLater(
-          socket.readyStates,
+          socket.connection,
           emitsInOrder([
-            ReadyState.connecting,
-            ReadyState.open,
+            const Connecting(),
+            const Connected(),
           ]),
         );
 
@@ -260,16 +285,24 @@ void main() {
         final socket = WebSocket(uri);
 
         await expectLater(
-          socket.readyStates,
+          socket.connection,
           emitsInOrder([
-            ReadyState.connecting,
-            ReadyState.closed,
+            const Connecting(),
+            isDisconnected(
+              whereError: isA<io.SocketException>(),
+              whereStackTrace: isNotNull,
+            ),
+            const Reconnecting(),
           ]),
         );
 
-        expect(socket.readyState, equals(ReadyState.closed));
+        expect(socket.connection.state, equals(const Reconnecting()));
         expect(socket.close, returnsNormally);
-        expect(socket.readyState, equals(ReadyState.closed));
+        await expectLater(
+          socket.connection,
+          emitsInOrder([const Disconnected()]),
+        );
+        expect(socket.connection.state, equals(const Disconnected()));
       });
     });
   });
@@ -284,4 +317,13 @@ Future<io.HttpServer> createWebSocketServer({
     if (onConnection != null) onConnection(IOWebSocketChannel(webSocket));
   });
   return server;
+}
+
+Matcher isDisconnected({
+  Matcher? whereError,
+  Matcher? whereStackTrace,
+}) {
+  return isA<Disconnected>()
+      .having((d) => d.error, 'error', whereError)
+      .having((d) => d.stackTrace, 'stackTrace', whereStackTrace);
 }

@@ -5,6 +5,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_client/src/_web_socket_channel/_web_socket_channel.dart'
     if (dart.library.io) 'package:web_socket_client/src/_web_socket_channel/_web_socket_channel_io.dart'
     if (dart.library.html) 'package:web_socket_client/src/_web_socket_channel/_web_socket_channel_html.dart';
+import 'package:web_socket_client/src/connection.dart';
 import 'package:web_socket_client/web_socket_client.dart';
 
 /// The default backoff strategy.
@@ -42,30 +43,43 @@ class WebSocket {
   final Duration _timeout;
 
   final _messageController = StreamController.broadcast();
-  final _readyStateController = StreamController<ReadyState>.broadcast();
+  final _connectionController = ConnectionController();
 
   Timer? _backoffTimer;
 
-  var __readyState = ReadyState.connecting;
+  WebSocketChannel? _channel;
 
-  ReadyState get _readyState => __readyState;
-
-  set _readyState(ReadyState state) {
-    __readyState = state;
-    _readyStateController.add(state);
+  bool get _isConnected {
+    final connectionState = _connectionController.state;
+    return connectionState is Connected ||
+        connectionState is Reconnected ||
+        connectionState is Disconnecting;
   }
 
-  WebSocketChannel? _channel;
-  bool _isReconnecting = false;
-  bool _isClosed = false;
+  bool get _isReconnecting {
+    return _connectionController.state == const Reconnecting();
+  }
+
+  bool get _isDisconnecting {
+    return _connectionController.state == const Disconnecting();
+  }
+
+  bool _isClosedByClient = false;
 
   Future<void> _connect() async {
-    if (_readyState.isConnected) return;
+    if (_isConnected) return;
 
-    void attemptToReconnect() {
-      if (_isClosed || _isReconnecting) return;
+    void attemptToReconnect({Object? error, StackTrace? stackTrace}) {
+      if (_isClosedByClient || _isReconnecting || _isDisconnecting) return;
+      _connectionController.add(
+        Disconnected(
+          code: _channel?.closeCode,
+          reason: _channel?.closeReason,
+          error: error,
+          stackTrace: stackTrace,
+        ),
+      );
       _channel = null;
-      _readyState = ReadyState.closed;
       _reconnect();
     }
 
@@ -75,7 +89,12 @@ class WebSocket {
         protocols: _protocols,
       ).timeout(_timeout);
 
-      if (_readyState.isNotConnected) _readyState = ReadyState.open;
+      final connectionState = _connectionController.state;
+      if (connectionState is Reconnecting) {
+        _connectionController.add(const Reconnected());
+      } else if (connectionState is Connecting) {
+        _connectionController.add(const Connected());
+      }
 
       ws
         ..pingInterval = _pingInterval
@@ -86,18 +105,19 @@ class WebSocket {
         );
 
       _channel = getWebSocketChannel(ws);
-    } catch (_) {
-      attemptToReconnect();
+    } catch (error, stackTrace) {
+      attemptToReconnect(error: error, stackTrace: stackTrace);
     }
   }
 
   Future<void> _reconnect() async {
-    _isReconnecting = true;
+    if (_isClosedByClient || _isConnected) return;
+
+    _connectionController.add(const Reconnecting());
 
     await _connect();
 
-    if (_readyState.isConnected) {
-      _isReconnecting = false;
+    if (_isClosedByClient || _isConnected) {
       _backoff.reset();
       _backoffTimer?.cancel();
       return;
@@ -110,14 +130,8 @@ class WebSocket {
   /// The stream of messages received from the WebSocket server.
   Stream<dynamic> get messages => _messageController.stream;
 
-  /// The current [ReadyState].
-  ReadyState get readyState => _readyState;
-
-  /// A distinct stream of the [ReadyState].
-  Stream<ReadyState> get readyStates async* {
-    yield _readyState;
-    yield* _readyStateController.stream.distinct();
-  }
+  /// The WebSocket [Connection].
+  Connection get connection => _connectionController;
 
   /// Enqueues the specified data to be transmitted
   /// to the server over the WebSocket connection.
@@ -125,24 +139,16 @@ class WebSocket {
 
   /// Closes the connection and frees any resources.
   void close([int? code, String? reason]) {
-    if (_readyState == ReadyState.closed) return;
-    _readyState = ReadyState.closing;
+    if (_connectionController.state is Disconnected) return;
+    _isClosedByClient = true;
     _backoffTimer?.cancel();
+    _connectionController.add(const Disconnecting());
     Future.wait<void>([
       if (_channel != null) _channel!.sink.close(code, reason),
     ]).whenComplete(() {
-      _readyState = ReadyState.closed;
+      _connectionController.add(Disconnected(code: code, reason: reason));
       _messageController.close();
-      _readyStateController.close();
-      _isClosed = true;
+      _connectionController.close();
     });
   }
-}
-
-extension on ReadyState {
-  bool get isConnected {
-    return this == ReadyState.open || this == ReadyState.closing;
-  }
-
-  bool get isNotConnected => !isConnected;
 }
