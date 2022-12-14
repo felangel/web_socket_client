@@ -1,5 +1,5 @@
 name: web_socket_client
-description: A reusable WebSocket client for Dart.
+description: A simple WebSocket client for Dart which includes automatic reconnection logic.
 repository: https://github.com/felangel/web_socket_client
 version: 0.1.0
 

@@ -74,7 +74,7 @@ class Reconnected extends ConnectionState {
 }
 
 /// {@template disconnecting}
-/// The connection is going through the closing handshake,
+/// The WebSocket connection is going through the closing handshake,
 /// or the close() method has been invoked.
 /// {@endtemplate}
 class Disconnecting extends ConnectionState {
@@ -91,7 +91,7 @@ class Disconnecting extends ConnectionState {
 }
 
 /// {@template disconnected}
-/// The connection has been closed or could not be established.
+/// The WebSocket connection has been closed or could not be established.
 /// {@endtemplate}
 class Disconnected extends ConnectionState {
   /// {@macro disconnected}
