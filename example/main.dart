@@ -7,19 +7,19 @@ void main() async {
   const backoff = ConstantBackoff(Duration(seconds: 1));
   final socket = WebSocket(uri, backoff: backoff);
 
-  // Listen for changes in the ready state.
-  socket.readyStates.listen((state) => print('connection: "$state"'));
+  // Listen for changes in the connection state.
+  socket.connection.listen((state) => print('state: "$state"'));
 
   // Listen for incoming messages.
   socket.messages.listen((message) {
     print('message: "$message"');
-    // Close the connection.
-    socket.close();
+
+    // Send a message to the server.
+    socket.send('ping');
   });
 
-  /// Wait for a connection to be established.
-  await socket.readyStates.firstWhere((state) => state == ReadyState.open);
+  await Future<void>.delayed(const Duration(seconds: 3));
 
-  // Send a message to the server.
-  socket.send('ping');
+  // Close the connection.
+  socket.close();
 }
