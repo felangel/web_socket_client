@@ -81,7 +81,7 @@ final socket = WebSocket(uri, backoff: backoff);
 **BinaryExponentialBackoff**
 
 This backoff strategy will make the `WebSocket` client wait an exponentially
-increasing amount of time until a maxiumum step is reached.
+increasing amount of time until a maximum step is reached.
 
 ```dart
 // Initially wait 1s and double the wait time until a maximum step of of 3 is reached.
