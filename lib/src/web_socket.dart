@@ -44,7 +44,7 @@ class WebSocket {
   final Backoff _backoff;
   final Duration _timeout;
 
-  final _messageController = StreamController.broadcast();
+  final _messageController = StreamController<dynamic>.broadcast();
   final _connectionController = ConnectionController();
 
   Timer? _backoffTimer;
