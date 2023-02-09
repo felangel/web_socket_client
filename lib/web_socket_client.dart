@@ -9,11 +9,11 @@ export 'src/backoff/linear_backoff.dart' show LinearBackoff;
 export 'src/connection.dart' show Connection;
 export 'src/connection_state.dart'
     show
-        ConnectionState,
-        Connecting,
         Connected,
-        Disconnecting,
+        Connecting,
+        ConnectionState,
         Disconnected,
-        Reconnecting,
-        Reconnected;
+        Disconnecting,
+        Reconnected,
+        Reconnecting;
 export 'src/web_socket.dart' show WebSocket;
