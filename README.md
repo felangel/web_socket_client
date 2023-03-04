@@ -155,6 +155,16 @@ socket.message.listen((message) {
 });
 ```
 
+## Protobuf 💬
+
+If you're using `web_socket_client` on the web with Protobuf, you might
+want to use `binaryType` when initializing the `WebSocket` class. It is not
+necessary when using it for dekstop or mobile devices:
+
+```dart
+final socket = WebSocket(Uri.parse('ws://localhost:8080'), binaryType: 'arraybuffer');
+```
+
 ## Closing the Connection 🚫
 
 Once a `WebSocket` connection is established, it will automatically attempt to
