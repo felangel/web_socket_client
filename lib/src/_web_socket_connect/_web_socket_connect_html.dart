@@ -8,8 +8,7 @@ Future<WebSocket> connect(
   Duration? pingInterval,
   String? binaryType,
 }) async {
-  final socket = WebSocket(url, protocols);
-  socket.binaryType = binaryType;
+  final socket = WebSocket(url, protocols)..binaryType = binaryType;
 
   if (socket.readyState == 1) return socket;
 
