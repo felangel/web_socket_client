@@ -6,8 +6,10 @@ Future<WebSocket> connect(
   String url, {
   Iterable<String>? protocols,
   Duration? pingInterval,
+  String? binaryType,
 }) async {
-  final socket = WebSocket(url, protocols);
+  final socket = WebSocket(url, protocols)..binaryType = binaryType;
+
   if (socket.readyState == 1) return socket;
 
   final completer = Completer<WebSocket>();
