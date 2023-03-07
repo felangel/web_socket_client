@@ -87,7 +87,7 @@ increasing amount of time until a maximum step is reached.
 // Initially wait 1s and double the wait time until a maximum step of of 3 is reached.
 // [1, 2, 4, 4, 4, ...]
 const backoff = BinaryExponentialBackoff(
-  initial: Duration(seconds: 1),  
+  initial: Duration(seconds: 1),
   maximumStep: 3
 );
 final socket = WebSocket(uri, backoff: backoff);
@@ -124,7 +124,7 @@ The connection state can be one of the following:
 - **disconnected**: the WebSocket connection has been closed or could not be
   established.
 
-_* The disconnected connection state contains nullable fields for the close
+_\* The disconnected connection state contains nullable fields for the close
 code, close reason, error, and stack trace._
 
 ## Sending Messages 📤
@@ -158,8 +158,8 @@ socket.message.listen((message) {
 ## Protobuf 💬
 
 If you're using `web_socket_client` on the web with Protobuf, you might
-want to use `binaryType` when initializing the `WebSocket` class. It is not
-necessary when using it for dekstop or mobile devices:
+want to use `binaryType` when initializing the `WebSocket` class.
+`binaryType` is only applicable on the web and is not used on desktop or mobile platforms.
 
 ```dart
 final socket = WebSocket(Uri.parse('ws://localhost:8080'), binaryType: 'arraybuffer');
