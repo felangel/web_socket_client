@@ -56,9 +56,7 @@ class WebSocket {
 
   bool get _isConnected {
     final connectionState = _connectionController.state;
-    return connectionState is Connected ||
-        connectionState is Reconnected ||
-        connectionState is Disconnecting;
+    return connectionState is Connected || connectionState is Reconnected || connectionState is Disconnecting;
   }
 
   bool get _isReconnecting {
@@ -105,7 +103,11 @@ class WebSocket {
 
       _channel = getWebSocketChannel(ws);
       _channel!.stream.listen(
-        _messageController.add,
+        (event) {
+          if (!_messageController.isClosed) {
+            _messageController.add(event);
+          }
+        },
         onDone: attemptToReconnect,
         cancelOnError: true,
       );
