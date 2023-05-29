@@ -56,9 +56,7 @@ class WebSocket {
 
   bool get _isConnected {
     final connectionState = _connectionController.state;
-    return connectionState is Connected ||
-        connectionState is Reconnected ||
-        connectionState is Disconnecting;
+    return connectionState is Connected || connectionState is Reconnected;
   }
 
   bool get _isReconnecting {
