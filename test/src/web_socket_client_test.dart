@@ -230,6 +230,8 @@ void main() {
           ]),
         );
 
+        await Future<void>.delayed(Duration.zero);
+
         expect(messages, equals(['ping', 'pong']));
 
         socket.close();
