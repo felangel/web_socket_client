@@ -54,6 +54,8 @@ class WebSocket {
 
   WebSocketChannel? _channel;
 
+  final List<dynamic> _messageQueue = [];
+
   bool get _isConnected {
     final connectionState = _connectionController.state;
     return connectionState is Connected ||
@@ -109,6 +111,8 @@ class WebSocket {
         onDone: attemptToReconnect,
         cancelOnError: true,
       );
+
+      _sendQueuedMessages();
     } catch (error, stackTrace) {
       attemptToReconnect(error, stackTrace);
     }
@@ -131,6 +135,14 @@ class WebSocket {
     _backoffTimer = Timer(_backoff.next(), _reconnect);
   }
 
+  void _sendQueuedMessages() {
+    for (final message in _messageQueue) {
+      _channel?.sink.add(message);
+    }
+
+    _messageQueue.clear();
+  }
+
   /// The stream of messages received from the WebSocket server.
   Stream<dynamic> get messages => _messageController.stream;
 
@@ -139,7 +151,8 @@ class WebSocket {
 
   /// Enqueues the specified data to be transmitted
   /// to the server over the WebSocket connection.
-  void send(dynamic message) => _channel?.sink.add(message);
+  void send(dynamic message) =>
+      _isConnected ? _channel?.sink.add(message) : _messageQueue.add(message);
 
   /// Closes the connection and frees any resources.
   void close([int? code, String? reason]) {
