@@ -265,6 +265,36 @@ void main() {
 
         socket.close();
       });
+
+      test('ignores messages when socket is closed', () async {
+        late final WebSocket socket;
+
+        server = await createWebSocketServer(
+          onConnection: (channel) {
+            channel.sink
+              ..add('ping')
+              ..add('pong');
+            socket.close();
+          },
+        );
+
+        final messages = <dynamic>[];
+        socket = WebSocket(
+          Uri.parse('ws://localhost:${server!.port}'),
+          backoff: const ConstantBackoff(Duration.zero),
+        )..messages.listen(messages.add);
+
+        await expectLater(
+          socket.connection,
+          emitsInOrder([
+            const Connecting(),
+            const Disconnecting(),
+            const Disconnected(),
+          ]),
+        );
+
+        expect(messages, equals(isEmpty));
+      });
     });
 
     group('send', () {
