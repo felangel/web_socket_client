@@ -112,7 +112,7 @@ void main() {
         expect(socket.connection.state, equals(const Reconnecting()));
         server = await createWebSocketServer(port: port);
 
-        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await _sleep();
         expect(socket.connection.state, equals(const Reconnected()));
 
         socket.close();
@@ -227,11 +227,11 @@ void main() {
           backoff: const ConstantBackoff(Duration.zero),
         )..messages.listen(messages.add);
 
-        await Future<void>.delayed(Duration.zero);
+        await _sleep();
 
         socket.close();
 
-        await Future<void>.delayed(Duration.zero);
+        await _sleep();
 
         expect(messages, isEmpty);
       });
@@ -258,6 +258,8 @@ void main() {
             const Connected(),
           ]),
         );
+
+        await _sleep();
 
         expect(messages, equals(['ping', 'pong']));
 
@@ -301,7 +303,7 @@ void main() {
           ..send('ping')
           ..send('pong');
 
-        await Future<void>.delayed(Duration.zero);
+        await _sleep();
 
         expect(messages, equals(['ping', 'pong']));
 
@@ -355,4 +357,8 @@ Matcher isDisconnected({
   return isA<Disconnected>()
       .having((d) => d.error, 'error', whereError)
       .having((d) => d.stackTrace, 'stackTrace', whereStackTrace);
+}
+
+Future<void> _sleep() {
+  return Future<void>.delayed(const Duration(milliseconds: 100));
 }
