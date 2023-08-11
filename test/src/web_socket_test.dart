@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:io' as io;
 
+import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_client/web_socket_client.dart';
+
+class _MockBackoff extends Mock implements Backoff {}
 
 void main() {
   group('WebSocket', () {
@@ -34,6 +37,32 @@ void main() {
             const Reconnecting(),
           ]),
         );
+        expect(socket.connection.state, equals(const Reconnecting()));
+
+        socket.close();
+      });
+
+      test(
+          'emits [connecting, disconnected, reconnecting] '
+          'when not able to establish a connection with retry.', () async {
+        final backoff = _MockBackoff();
+        final socket = WebSocket(uri, backoff: backoff);
+
+        when(backoff.next).thenReturn(Duration.zero);
+
+        await expectLater(
+          socket.connection,
+          emitsInOrder([
+            const Connecting(),
+            isDisconnected(
+              whereError: isA<io.SocketException>(),
+              whereStackTrace: isNotNull,
+            ),
+            const Reconnecting(),
+          ]),
+        );
+        expect(socket.connection.state, equals(const Reconnecting()));
+        await untilCalled(backoff.next);
         expect(socket.connection.state, equals(const Reconnecting()));
 
         socket.close();
