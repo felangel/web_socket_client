@@ -105,7 +105,10 @@ class WebSocket {
 
       _channel = getWebSocketChannel(ws);
       _channel!.stream.listen(
-        _messageController.add,
+        (message) {
+          if (_messageController.isClosed) return;
+          _messageController.add(message);
+        },
         onDone: attemptToReconnect,
         cancelOnError: true,
       );
