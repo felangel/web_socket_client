@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:io' as io;
 
+import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_client/web_socket_client.dart';
+
+class _MockBackoff extends Mock implements Backoff {}
 
 void main() {
   group('WebSocket', () {
@@ -34,6 +37,32 @@ void main() {
             const Reconnecting(),
           ]),
         );
+        expect(socket.connection.state, equals(const Reconnecting()));
+
+        socket.close();
+      });
+
+      test(
+          'emits [connecting, disconnected, reconnecting] '
+          'when not able to establish a connection with retry.', () async {
+        final backoff = _MockBackoff();
+        final socket = WebSocket(uri, backoff: backoff);
+
+        when(backoff.next).thenReturn(Duration.zero);
+
+        await expectLater(
+          socket.connection,
+          emitsInOrder([
+            const Connecting(),
+            isDisconnected(
+              whereError: isA<io.SocketException>(),
+              whereStackTrace: isNotNull,
+            ),
+            const Reconnecting(),
+          ]),
+        );
+        expect(socket.connection.state, equals(const Reconnecting()));
+        await untilCalled(backoff.next);
         expect(socket.connection.state, equals(const Reconnecting()));
 
         socket.close();
@@ -83,7 +112,7 @@ void main() {
         expect(socket.connection.state, equals(const Reconnecting()));
         server = await createWebSocketServer(port: port);
 
-        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await _sleep();
         expect(socket.connection.state, equals(const Reconnected()));
 
         socket.close();
@@ -198,11 +227,11 @@ void main() {
           backoff: const ConstantBackoff(Duration.zero),
         )..messages.listen(messages.add);
 
-        await Future<void>.delayed(Duration.zero);
+        await _sleep();
 
         socket.close();
 
-        await Future<void>.delayed(Duration.zero);
+        await _sleep();
 
         expect(messages, isEmpty);
       });
@@ -229,6 +258,8 @@ void main() {
             const Connected(),
           ]),
         );
+
+        await _sleep();
 
         expect(messages, equals(['ping', 'pong']));
 
@@ -272,7 +303,7 @@ void main() {
           ..send('ping')
           ..send('pong');
 
-        await Future<void>.delayed(Duration.zero);
+        await _sleep();
 
         expect(messages, equals(['ping', 'pong']));
 
@@ -326,4 +357,8 @@ Matcher isDisconnected({
   return isA<Disconnected>()
       .having((d) => d.error, 'error', whereError)
       .having((d) => d.stackTrace, 'stackTrace', whereStackTrace);
+}
+
+Future<void> _sleep() {
+  return Future<void>.delayed(const Duration(milliseconds: 100));
 }
