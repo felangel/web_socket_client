@@ -150,7 +150,7 @@ Listen for incoming messages from the server via the `messages` stream:
 final socket = WebSocket(Uri.parse('ws://localhost:8080'));
 
 // Listen for incoming messages.
-socket.message.listen((message) {
+socket.messages.listen((message) {
   // Handle the incoming message.
 });
 ```
