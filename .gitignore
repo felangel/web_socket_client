@@ -6,3 +6,6 @@
 build/
 pubspec.lock
 coverage/
+
+.idea/
+*.iml
