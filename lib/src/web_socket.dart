@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_client/src/_web_socket_channel/_web_socket_channel.dart'
@@ -31,12 +32,14 @@ class WebSocket {
     Backoff? backoff,
     Duration? timeout,
     String? binaryType,
+    HttpClient? httpClient,
   })  : _uri = uri,
         _protocols = protocols,
         _pingInterval = pingInterval,
         _backoff = backoff ?? _defaultBackoff,
         _timeout = timeout ?? _defaultTimeout,
-        _binaryType = binaryType {
+        _binaryType = binaryType,
+        _httpClient = httpClient {
     _connect();
   }
 
@@ -46,6 +49,7 @@ class WebSocket {
   final Backoff _backoff;
   final Duration _timeout;
   final String? _binaryType;
+  final HttpClient? _httpClient;
 
   final _messageController = StreamController<dynamic>.broadcast();
   final _connectionController = ConnectionController();
@@ -94,6 +98,7 @@ class WebSocket {
         protocols: _protocols,
         pingInterval: _pingInterval,
         binaryType: _binaryType,
+        httpClient: _httpClient,
       ).timeout(_timeout);
 
       final connectionState = _connectionController.state;

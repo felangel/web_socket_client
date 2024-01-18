@@ -6,7 +6,11 @@ Future<WebSocket> connect(
   Iterable<String>? protocols,
   Duration? pingInterval,
   String? binaryType,
+  HttpClient? httpClient,
 }) async {
-  return await WebSocket.connect(url, protocols: protocols)
-    ..pingInterval = pingInterval;
+  return await WebSocket.connect(
+    url,
+    protocols: protocols,
+    customClient: httpClient,
+  )..pingInterval = pingInterval;
 }
