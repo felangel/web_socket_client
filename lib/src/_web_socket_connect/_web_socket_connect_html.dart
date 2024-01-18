@@ -13,7 +13,10 @@ Future<WebSocket> connect(
   final socket = WebSocket(
     url,
     protocols?.map((e) => e.toJS).toList().toJS ?? JSArray(),
-  )..binaryType = binaryType ?? 'list';
+  )
+    // Either "blob" (default) or "arraybuffer".
+    // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/binaryType
+    ..binaryType = binaryType ?? 'blob';
 
   if (socket.readyState == 1) return socket;
 
