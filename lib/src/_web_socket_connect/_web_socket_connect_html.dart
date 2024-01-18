@@ -7,6 +7,7 @@ import 'package:web/helpers.dart';
 Future<WebSocket> connect(
   String url, {
   Iterable<String>? protocols,
+  Map<String, dynamic>? headers,
   Duration? pingInterval,
   String? binaryType,
 }) async {
