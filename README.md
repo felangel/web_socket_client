@@ -165,6 +165,8 @@ want to use `binaryType` when initializing the `WebSocket` class.
 final socket = WebSocket(Uri.parse('ws://localhost:8080'), binaryType: 'arraybuffer');
 ```
 
+See https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/binaryType for more info.
+
 ## Closing the Connection 🚫
 
 Once a `WebSocket` connection is established, it will automatically attempt to

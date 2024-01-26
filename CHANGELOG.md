@@ -1,3 +1,8 @@
+# 0.1.1
+
+- feat: add `headers` support
+- feat: migrate to `package:web`
+
 # 0.1.0
 
 - fix: cannot add new events after calling close

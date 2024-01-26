@@ -1,14 +1,23 @@
 import 'dart:async';
-import 'dart:html';
+import 'dart:js_interop';
+
+import 'package:web/helpers.dart';
 
 /// Create a WebSocket connection.
 Future<WebSocket> connect(
   String url, {
   Iterable<String>? protocols,
+  Map<String, dynamic>? headers,
   Duration? pingInterval,
   String? binaryType,
 }) async {
-  final socket = WebSocket(url, protocols)..binaryType = binaryType;
+  final socket = WebSocket(
+    url,
+    protocols?.map((e) => e.toJS).toList().toJS ?? JSArray(),
+  )
+    // Either "blob" (default) or "arraybuffer".
+    // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/binaryType
+    ..binaryType = binaryType ?? 'blob';
 
   if (socket.readyState == 1) return socket;
 
