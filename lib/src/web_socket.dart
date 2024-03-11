@@ -38,9 +38,7 @@ class WebSocket {
         _headers = headers,
         _backoff = backoff ?? _defaultBackoff,
         _timeout = timeout ?? _defaultTimeout,
-        _binaryType = binaryType {
-    _connect();
-  }
+        _binaryType = binaryType;
 
   final Uri _uri;
   final Iterable<String>? _protocols;
@@ -74,7 +72,8 @@ class WebSocket {
 
   bool _isClosedByClient = false;
 
-  Future<void> _connect() async {
+  /// Attempt to connect the websocket
+  Future<void> connect() async {
     if (_isConnected) return;
 
     void attemptToReconnect([Object? error, StackTrace? stackTrace]) {
@@ -92,7 +91,7 @@ class WebSocket {
     }
 
     try {
-      final ws = await connect(
+      final ws = await createConnection(
         _uri.toString(),
         protocols: _protocols,
         headers: _headers,
@@ -126,7 +125,7 @@ class WebSocket {
 
     _connectionController.add(const Reconnecting());
 
-    await _connect();
+    await connect();
 
     if (_isClosedByClient || _isConnected) {
       _backoff.reset();
