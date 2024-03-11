@@ -14,6 +14,9 @@ logic.
 // Create a WebSocket client.
 final socket = WebSocket(Uri.parse('ws://localhost:8080'));
 
+// connect the websocket
+socket.connect()
+
 // Listen to messages from the server.
 socket.messages.listen((message) {
   // Handle incoming messages.
@@ -101,7 +104,7 @@ the connection state.
 
 ```dart
 final uri = Uri.parse('ws://localhost:8080');
-final socket = WebSocket(uri);
+final socket = WebSocket(uri)..connect();
 
 // Listen to changes in the connection state.
 socket.connection.listen((state) {
@@ -133,7 +136,7 @@ Once a `WebSocket` connection has been established, messages can be sent to the
 server via `send`:
 
 ```dart
-final socket = WebSocket(Uri.parse('ws://localhost:8080'));
+final socket = WebSocket(Uri.parse('ws://localhost:8080'))..connect();
 
 // Wait until a connection has been established.
 await socket.connection.firstWhere((state) => state is Connected);
@@ -147,7 +150,7 @@ socket.send('ping');
 Listen for incoming messages from the server via the `messages` stream:
 
 ```dart
-final socket = WebSocket(Uri.parse('ws://localhost:8080'));
+final socket = WebSocket(Uri.parse('ws://localhost:8080'))..connect();
 
 // Listen for incoming messages.
 socket.messages.listen((message) {
@@ -177,7 +180,7 @@ to reconnect and a new `WebSocket` client instance will need to be created in
 order to establish a new connection.
 
 ```dart
-final socket = WebSocket(Uri.parse('ws://localhost:8080'));
+final socket = WebSocket(Uri.parse('ws://localhost:8080'))..connect();
 
 // Later, close the connection with an optional code and reason.
 socket.close(1000, 'CLOSE_NORMAL');
