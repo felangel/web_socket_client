@@ -32,13 +32,16 @@ class WebSocket {
     Backoff? backoff,
     Duration? timeout,
     String? binaryType,
+    bool autoConnect = true,
   })  : _uri = uri,
         _protocols = protocols,
         _pingInterval = pingInterval,
         _headers = headers,
         _backoff = backoff ?? _defaultBackoff,
         _timeout = timeout ?? _defaultTimeout,
-        _binaryType = binaryType;
+        _binaryType = binaryType {
+    if (autoConnect) connect();
+  }
 
   final Uri _uri;
   final Iterable<String>? _protocols;
