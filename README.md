@@ -165,7 +165,19 @@ want to use `binaryType` when initializing the `WebSocket` class.
 final socket = WebSocket(Uri.parse('ws://localhost:8080'), binaryType: 'arraybuffer');
 ```
 
-See https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/binaryType for more info.
+See <https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/binaryType> for more info.
+
+## Manual connect
+
+Don't want to automatically connect the web socket the moment the class is initiated; set the autoConnect flag to false and call `connect()` when needed.
+
+```dart
+// will not connect
+final socket = WebSocket(Uri.parse('ws://localhost:8080'), autoConnect: false);
+
+// connect manually
+await socket.connect();
+```
 
 ## Closing the Connection 🚫
 
