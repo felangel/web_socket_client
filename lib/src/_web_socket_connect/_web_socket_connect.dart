@@ -1,5 +1,5 @@
 /// Create a WebSocket connection.
-Future<Stream<dynamic>> connect(
+Future<Stream<dynamic>> createConnection(
   String url, {
   Iterable<String>? protocols,
   Map<String, dynamic>? headers,

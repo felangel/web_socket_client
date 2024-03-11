@@ -1,7 +1,7 @@
 import 'dart:io';
 
 /// Create a WebSocket connection.
-Future<WebSocket> connect(
+Future<WebSocket> createConnection(
   String url, {
   Iterable<String>? protocols,
   Map<String, dynamic>? headers,
