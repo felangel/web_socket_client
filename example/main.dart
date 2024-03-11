@@ -7,8 +7,6 @@ void main() async {
   const backoff = ConstantBackoff(Duration(seconds: 1));
   final socket = WebSocket(uri, backoff: backoff);
 
-  await socket.connect();
-
   // Listen for changes in the connection state.
   socket.connection.listen((state) => print('state: "$state"'));
 
