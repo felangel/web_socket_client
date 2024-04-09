@@ -5,11 +5,11 @@ version: 0.1.1
 topics: [web-socket, web-socket-client]
 
 environment:
-  sdk: ">=2.19.0 <4.0.0"
+  sdk: ">=3.3.0 <4.0.0"
 
 dependencies:
-  web: ^0.4.0
-  web_socket_channel: ^2.0.0
+  web: ^0.5.1
+  web_socket_channel: ^2.4.5
 
 dev_dependencies:
   mocktail: ^1.0.0
