@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:js_interop';
-
-import 'package:web/helpers.dart';
+import 'package:web/web.dart';
 
 /// Create a WebSocket connection.
 Future<WebSocket> connect(
