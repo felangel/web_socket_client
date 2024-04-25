@@ -150,6 +150,16 @@ class WebSocket {
   /// to the server over the WebSocket connection.
   void send(dynamic message) => _channel?.sink.add(message);
 
+  /// Disconnects current websocket but does not close resources
+  /// enables you to disconnect and connect again without making a new instance
+  Future<void> disconnect() async {
+    if (_connectionController.state is Disconnected) return;
+    _isClosedByClient = true;
+    _connectionController.add(const Disconnecting());
+    if (_channel != null) await _channel!.sink.close();
+    _connectionController.add(const Disconnected());
+  }
+
   /// Closes the connection and frees any resources.
   void close([int? code, String? reason]) {
     if (_connectionController.state is Disconnected) return;
