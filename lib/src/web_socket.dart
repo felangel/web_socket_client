@@ -60,9 +60,7 @@ class WebSocket {
 
   bool get _isConnected {
     final connectionState = _connectionController.state;
-    return connectionState is Connected ||
-        connectionState is Reconnected ||
-        connectionState is Disconnecting;
+    return connectionState is Connected || connectionState is Disconnecting;
   }
 
   bool get _isReconnecting {
@@ -102,12 +100,7 @@ class WebSocket {
         binaryType: _binaryType,
       ).timeout(_timeout);
 
-      final connectionState = _connectionController.state;
-      if (connectionState is Reconnecting) {
-        _connectionController.add(const Reconnected());
-      } else if (connectionState is Connecting) {
-        _connectionController.add(const Connected());
-      }
+      _connectionController.add(const Connected());
 
       _channel = getWebSocketChannel(ws);
       _channel!.stream.listen(

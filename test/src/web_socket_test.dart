@@ -113,7 +113,7 @@ void main() {
         server = await createWebSocketServer(port: port);
 
         await _sleep();
-        expect(socket.connection.state, equals(const Reconnected()));
+        expect(socket.connection.state, equals(const Connected()));
 
         socket.close();
       });
@@ -167,11 +167,11 @@ void main() {
           socket.connection,
           emitsInOrder([
             const Reconnecting(),
-            const Reconnected(),
+            const Connected(),
           ]),
         );
 
-        expect(socket.connection.state, equals(const Reconnected()));
+        expect(socket.connection.state, equals(const Connected()));
 
         await channel!.sink.close();
         await server!.close(force: true);

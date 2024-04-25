@@ -26,13 +26,6 @@ void main() {
       });
     });
 
-    group('Reconnected', () {
-      test('supports value equality', () {
-        expect(Reconnected(), equals(Reconnected()));
-        expect(Reconnected().hashCode, equals(Reconnected().hashCode));
-      });
-    });
-
     group('Disconnecting', () {
       test('supports value equality', () {
         expect(Disconnecting(), equals(Disconnecting()));

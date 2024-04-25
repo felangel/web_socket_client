@@ -57,22 +57,6 @@ class Reconnecting extends ConnectionState {
   }
 }
 
-/// {@template reconnected}
-/// The WebSocket connection was lost and has been re-established.
-/// {@endtemplate}
-class Reconnected extends ConnectionState {
-  /// {@macro reconnected}
-  const Reconnected();
-
-  @override
-  int get hashCode => 3;
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) || other is Reconnected;
-  }
-}
-
 /// {@template disconnecting}
 /// The WebSocket connection is going through the closing handshake,
 /// or the close() method has been invoked.
