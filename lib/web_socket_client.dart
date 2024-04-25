@@ -14,6 +14,5 @@ export 'src/connection_state.dart'
         ConnectionState,
         Disconnected,
         Disconnecting,
-        Reconnected,
         Reconnecting;
 export 'src/web_socket.dart' show WebSocket;

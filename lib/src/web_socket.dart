@@ -92,6 +92,8 @@ class WebSocket {
     }
 
     try {
+      _connectionController.add(const Connecting());
+
       final ws = await createConnection(
         _uri.toString(),
         protocols: _protocols,
