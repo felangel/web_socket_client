@@ -1,3 +1,8 @@
+# 0.1.2
+
+- deps: upgrade `pkg:web` and `pkg:web_socket_channel`
+  - requires Dart `>=3.3.0`
+
 # 0.1.1
 
 - feat: add `headers` support
