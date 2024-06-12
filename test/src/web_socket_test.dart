@@ -365,6 +365,32 @@ void main() {
         );
         expect(socket.connection.state, equals(const Disconnected()));
       });
+
+      test('does nothing when called in rapid succession', () async {
+        final socket = WebSocket(uri);
+
+        await expectLater(
+          socket.connection,
+          emitsInOrder([
+            const Connecting(),
+            isDisconnected(
+              whereError: isA<io.SocketException>(),
+              whereStackTrace: isNotNull,
+            ),
+            const Reconnecting(),
+          ]),
+        );
+
+        expect(socket.connection.state, equals(const Reconnecting()));
+        for (var i = 0; i < 3; i++) {
+          socket.close();
+        }
+        await expectLater(
+          socket.connection,
+          emitsInOrder([const Disconnected()]),
+        );
+        expect(socket.connection.state, equals(const Disconnected()));
+      });
     });
   });
 }

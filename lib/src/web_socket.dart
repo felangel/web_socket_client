@@ -150,7 +150,7 @@ class WebSocket {
 
   /// Closes the connection and frees any resources.
   void close([int? code, String? reason]) {
-    if (_connectionController.state is Disconnected) return;
+    if (_isClosedByClient) return;
     _isClosedByClient = true;
     _backoffTimer?.cancel();
     _connectionController.add(const Disconnecting());
