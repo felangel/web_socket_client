@@ -1,3 +1,7 @@
+# 0.1.3
+
+- deps: support for `pkg:web_socket_channel: ^3.0.0`
+
 # 0.1.2
 
 - deps: upgrade `pkg:web` and `pkg:web_socket_channel`
