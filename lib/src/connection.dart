@@ -51,5 +51,5 @@ class ConnectionController extends Connection {
   }
 
   /// Closes the controller's stream.
-  Future<void> close() => _controller.close();
+  void close() => _controller.close();
 }
