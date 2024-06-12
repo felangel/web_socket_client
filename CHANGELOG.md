@@ -1,3 +1,7 @@
+# 0.1.4
+
+- fix: consecutive calls to `close` complete normally
+
 # 0.1.3
 
 - deps: support for `pkg:web_socket_channel: ^3.0.0`
