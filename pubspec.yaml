@@ -3,6 +3,7 @@ description: A simple WebSocket client for Dart which includes automatic reconne
 repository: https://github.com/felangel/web_socket_client
 version: 0.1.4
 topics: [web-socket, web-socket-client]
+funding: [https://github.com/sponsors/felangel]
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
