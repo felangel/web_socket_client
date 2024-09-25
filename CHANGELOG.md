@@ -1,3 +1,9 @@
+# 0.1.5
+
+- chore(deps): upgrade to `pkg:very_good_analysis ^6.0.0`
+- chore(deps): support for `pkg:web: ^1.0.0`
+- chore: add `funding` to `pubspec.yaml`
+
 # 0.1.4
 
 - fix: consecutive calls to `close` complete normally
