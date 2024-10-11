@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_client/src/_web_socket_channel/_web_socket_channel.dart'
     if (dart.library.io) 'package:web_socket_client/src/_web_socket_channel/_web_socket_channel_io.dart'
-    if (dart.library.html) 'package:web_socket_client/src/_web_socket_channel/_web_socket_channel_html.dart';
+    if (dart.library.js_interop) 'package:web_socket_client/src/_web_socket_channel/_web_socket_channel_html.dart';
 import 'package:web_socket_client/src/_web_socket_connect/_web_socket_connect.dart'
     if (dart.library.io) 'package:web_socket_client/src/_web_socket_connect/_web_socket_connect_io.dart'
-    if (dart.library.html) 'package:web_socket_client/src/_web_socket_connect/_web_socket_connect_html.dart';
+    if (dart.library.js_interop) 'package:web_socket_client/src/_web_socket_connect/_web_socket_connect_html.dart';
 import 'package:web_socket_client/src/connection.dart';
 import 'package:web_socket_client/web_socket_client.dart';
 
