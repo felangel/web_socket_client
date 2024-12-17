@@ -144,6 +144,14 @@ class WebSocket {
   /// The WebSocket [Connection].
   Connection get connection => _connectionController;
 
+  /// The subprotocol used by the connection
+  ///
+  /// The subprotocol is sent by the server during the initial
+  /// connection handshake, if the client and server aren't
+  /// able to negotiate a protocol during the handshake, it will
+  /// return `null`
+  String? get protocol => _channel?.protocol;
+
   /// Enqueues the specified data to be transmitted
   /// to the server over the WebSocket connection.
   void send(dynamic message) => _channel?.sink.add(message);
