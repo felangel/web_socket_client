@@ -49,6 +49,10 @@ class WebSocket {
   final Backoff _backoff;
   final Duration _timeout;
   final String? _binaryType;
+  final _readyCompleter = Completer<void>();
+
+  /// A future that completes when the WebSocket connection is ready.
+  Future<void> get ready => _readyCompleter.future;
 
   final _messageController = StreamController<dynamic>.broadcast();
   final _connectionController = ConnectionController();
@@ -99,7 +103,6 @@ class WebSocket {
         pingInterval: _pingInterval,
         binaryType: _binaryType,
       ).timeout(_timeout);
-
       final connectionState = _connectionController.state;
       if (connectionState is Reconnecting) {
         _connectionController.add(const Reconnected());
@@ -116,6 +119,7 @@ class WebSocket {
         onDone: attemptToReconnect,
         cancelOnError: true,
       );
+      _readyCompleter.complete(_channel!.ready);
     } catch (error, stackTrace) {
       attemptToReconnect(error, stackTrace);
     }
