@@ -91,34 +91,36 @@ class WebSocket {
       _reconnect();
     }
 
+    final Stream<dynamic> ws;
     try {
-      final ws = await connect(
+      ws = await connect(
         _uri.toString(),
         protocols: _protocols,
         headers: _headers,
         pingInterval: _pingInterval,
         binaryType: _binaryType,
       ).timeout(_timeout);
-
-      final connectionState = _connectionController.state;
-      if (connectionState is Reconnecting) {
-        _connectionController.add(const Reconnected());
-      } else if (connectionState is Connecting) {
-        _connectionController.add(const Connected());
-      }
-
-      _channel = getWebSocketChannel(ws);
-      _channel!.stream.listen(
-        (message) {
-          if (_messageController.isClosed) return;
-          _messageController.add(message);
-        },
-        onDone: attemptToReconnect,
-        cancelOnError: true,
-      );
-    } catch (error, stackTrace) {
+    } on TimeoutException catch (error, stackTrace) {
       attemptToReconnect(error, stackTrace);
+      return;
     }
+
+    final connectionState = _connectionController.state;
+    if (connectionState is Reconnecting) {
+      _connectionController.add(const Reconnected());
+    } else if (connectionState is Connecting) {
+      _connectionController.add(const Connected());
+    }
+
+    _channel = getWebSocketChannel(ws);
+    _channel!.stream.listen(
+      (message) {
+        if (_messageController.isClosed) return;
+        _messageController.add(message);
+      },
+      onDone: attemptToReconnect,
+      cancelOnError: true,
+    );
   }
 
   Future<void> _reconnect() async {
