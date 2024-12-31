@@ -3,6 +3,9 @@ import 'dart:js_interop';
 
 import 'package:web/web.dart';
 
+/// A socket exception for the platform
+typedef PlatformSocketException = Exception;
+
 /// Create a WebSocket connection.
 Future<WebSocket> connect(
   String url, {

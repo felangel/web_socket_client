@@ -1,3 +1,7 @@
+
+/// A socket exception for the platform
+typedef PlatformSocketException = Exception;
+
 /// Create a WebSocket connection.
 Future<Stream<dynamic>> connect(
   String url, {

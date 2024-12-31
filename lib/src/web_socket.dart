@@ -103,6 +103,9 @@ class WebSocket {
     } on TimeoutException catch (error, stackTrace) {
       attemptToReconnect(error, stackTrace);
       return;
+    } on PlatformSocketException catch (error, stackTrace) {
+      attemptToReconnect(error, stackTrace);
+      return;
     }
 
     final connectionState = _connectionController.state;

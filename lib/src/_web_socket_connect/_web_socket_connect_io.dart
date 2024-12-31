@@ -1,5 +1,8 @@
 import 'dart:io';
 
+/// A socket exception for the platform
+typedef PlatformSocketException = SocketException;
+
 /// Create a WebSocket connection.
 Future<WebSocket> connect(
   String url, {
