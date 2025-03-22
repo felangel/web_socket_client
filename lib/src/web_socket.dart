@@ -146,13 +146,12 @@ class WebSocket {
   /// The WebSocket [Connection].
   Connection get connection => _connectionController;
 
-  /// The subprotocol used by the connection
+  /// The subprotocol selected by the server.
   ///
-  /// The subprotocol is sent by the server during the initial
-  /// connection handshake, if the client and server aren't
-  /// able to negotiate a protocol during the handshake, it will
-  /// return `null`
-  String? get protocol => _channel?.protocol;
+  /// This is initially empty. After the WebSocket connection is established the
+  /// value is set to the subprotocol selected by the server. If no subprotocol
+  /// is negotiated the value will remain empty.
+  String get protocol => _channel?.protocol ?? '';
 
   /// Enqueues the specified data to be transmitted
   /// to the server over the WebSocket connection.

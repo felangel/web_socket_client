@@ -20,6 +20,55 @@ void main() {
 
     tearDown(() => server?.close(force: true));
 
+    group('protocol', () {
+      test('is empty when client is disconnected', () {
+        final socket = WebSocket(uri);
+        expect(socket.protocol, isEmpty);
+      });
+
+      test('is empty when client is connected with no protocol', () async {
+        server = await createWebSocketServer();
+        final socket = WebSocket(
+          Uri.parse('ws://localhost:${server!.port}'),
+          backoff: const ConstantBackoff(Duration.zero),
+        );
+
+        await expectLater(
+          socket.connection,
+          emitsInOrder([
+            const Connecting(),
+            const Connected(),
+          ]),
+        );
+        expect(socket.connection.state, equals(const Connected()));
+        expect(socket.protocol, isEmpty);
+
+        socket.close();
+      });
+
+      test('uses correct protocol when client is connected', () async {
+        const protocol = 'test-protocol';
+        server = await createWebSocketServer();
+        final socket = WebSocket(
+          Uri.parse('ws://localhost:${server!.port}'),
+          protocols: [protocol],
+          backoff: const ConstantBackoff(Duration.zero),
+        );
+
+        await expectLater(
+          socket.connection,
+          emitsInOrder([
+            const Connecting(),
+            const Connected(),
+          ]),
+        );
+        expect(socket.connection.state, equals(const Connected()));
+        expect(socket.protocol, equals(protocol));
+
+        socket.close();
+      });
+    });
+
     group('connection', () {
       test(
           'emits [connecting, disconnected, reconnecting] '
@@ -400,7 +449,13 @@ Future<io.HttpServer> createWebSocketServer({
   int port = 0,
 }) async {
   final server = await io.HttpServer.bind('localhost', port);
-  server.transform(io.WebSocketTransformer()).listen((webSocket) {
+  server
+      .transform(
+    io.WebSocketTransformer(
+      protocolSelector: (protocols) => protocols.firstOrNull,
+    ),
+  )
+      .listen((webSocket) {
     if (onConnection != null) onConnection(IOWebSocketChannel(webSocket));
   });
   return server;
