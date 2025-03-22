@@ -146,6 +146,13 @@ class WebSocket {
   /// The WebSocket [Connection].
   Connection get connection => _connectionController;
 
+  /// The subprotocol selected by the server.
+  ///
+  /// This is initially empty. After the connection is established the value is
+  /// set to the subprotocol selected by the server. If no subprotocol is
+  /// negotiated the value will remain empty.
+  String get protocol => _channel?.protocol ?? '';
+
   /// Enqueues the specified data to be transmitted
   /// to the server over the WebSocket connection.
   void send(dynamic message) => _channel?.sink.add(message);
