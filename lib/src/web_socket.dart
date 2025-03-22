@@ -52,6 +52,7 @@ class WebSocket {
 
   final _messageController = StreamController<dynamic>.broadcast();
   final _connectionController = ConnectionController();
+  StreamSubscription<dynamic>? _subscription;
 
   Timer? _backoffTimer;
 
@@ -108,7 +109,8 @@ class WebSocket {
       }
 
       _channel = getWebSocketChannel(ws);
-      _channel!.stream.listen(
+      _subscription?.cancel().ignore();
+      _subscription = _channel!.stream.listen(
         (message) {
           if (_messageController.isClosed) return;
           _messageController.add(message);
@@ -158,6 +160,7 @@ class WebSocket {
       if (_channel != null) _channel!.sink.close(code, reason),
     ]).whenComplete(() {
       _connectionController.add(Disconnected(code: code, reason: reason));
+      _subscription?.cancel();
       _messageController.close();
       _connectionController.close();
     });
