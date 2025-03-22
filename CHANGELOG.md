@@ -1,3 +1,14 @@
+# 0.2.0
+
+- **BREAKING** refactor: make `ConnectionState` a `sealed` class
+- feat: add wasm compatibility
+- feat: add `protocol` getter to `WebSocket`
+- fix: cancel subscription on `close` or `reconnect`
+- fix: `invalid_runtime_check_with_js_interop_types`
+  - bump minimum Dart SDK version to 3.4.0
+- fix: only attempt reconnect on `Exceptions` to avoid infinite retry-loop
+- refactor: upgrade `analysis_options`
+
 # 0.1.5
 
 - chore(deps): upgrade to `pkg:very_good_analysis ^6.0.0`
