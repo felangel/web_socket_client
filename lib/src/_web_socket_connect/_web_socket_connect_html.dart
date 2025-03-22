@@ -33,7 +33,7 @@ Future<WebSocket> connect(
     socket.onError.first.then((event) {
       final error =
           event.isA<ErrorEvent>() ? (event as ErrorEvent).error : null;
-      completer.completeError(error ?? 'unknown error');
+      completer.completeError(error ?? Exception('unknown error'));
     }),
   );
 
