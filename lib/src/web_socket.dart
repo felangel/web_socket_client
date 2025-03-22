@@ -116,7 +116,7 @@ class WebSocket {
         onDone: attemptToReconnect,
         cancelOnError: true,
       );
-    } catch (error, stackTrace) {
+    } on Exception catch (error, stackTrace) {
       attemptToReconnect(error, stackTrace);
     }
   }
