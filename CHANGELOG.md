@@ -1,3 +1,7 @@
+# 0.2.1
+
+- fix: infinite backoff loop by permanently disconnecting and closing the connection if `timeout` duration is exceeded.
+
 # 0.2.0
 
 - **BREAKING** refactor: make `ConnectionState` a `sealed` class
