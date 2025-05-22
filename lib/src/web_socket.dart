@@ -55,6 +55,7 @@ class WebSocket {
   StreamSubscription<dynamic>? _subscription;
 
   Timer? _backoffTimer;
+  Duration _backoffDuration = Duration.zero;
 
   WebSocketChannel? _channel;
 
@@ -80,6 +81,7 @@ class WebSocket {
 
     void attemptToReconnect([Object? error, StackTrace? stackTrace]) {
       if (_isClosedByClient || _isReconnecting || _isDisconnecting) return;
+      if (_backoffDuration >= _timeout) return _closeWithTimeout();
       _connectionController.add(
         Disconnected(
           code: _channel?.closeCode,
@@ -124,6 +126,7 @@ class WebSocket {
   }
 
   Future<void> _reconnect() async {
+    if (_backoffDuration >= _timeout) return _closeWithTimeout();
     if (_isClosedByClient || _isConnected) return;
 
     _connectionController.add(const Reconnecting());
@@ -133,12 +136,17 @@ class WebSocket {
     if (_isClosedByClient || _isConnected) {
       _backoff.reset();
       _backoffTimer?.cancel();
+      _backoffDuration = Duration.zero;
       return;
     }
 
     _backoffTimer?.cancel();
-    _backoffTimer = Timer(_backoff.next(), _reconnect);
+    final next = _backoff.next();
+    _backoffDuration = _backoffDuration + next;
+    _backoffTimer = Timer(next, _reconnect);
   }
+
+  void _closeWithTimeout() => close(1006, 'connection timeout');
 
   /// The stream of messages received from the WebSocket server.
   Stream<dynamic> get messages => _messageController.stream;
@@ -162,7 +170,8 @@ class WebSocket {
     if (_isClosedByClient) return;
     _isClosedByClient = true;
     _backoffTimer?.cancel();
-    _connectionController.add(const Disconnecting());
+    _backoffDuration = Duration.zero;
+    if (_isConnected) _connectionController.add(const Disconnecting());
     Future.wait<void>([
       if (_channel != null) _channel!.sink.close(code, reason),
     ]).whenComplete(() {

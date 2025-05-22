@@ -118,6 +118,59 @@ void main() {
       });
 
       test(
+          'emits [connecting, disconnected] '
+          'when not able to establish a connection due to timeout.', () async {
+        final backoff = _MockBackoff();
+        final socket = WebSocket(uri, backoff: backoff, timeout: Duration.zero);
+
+        when(backoff.next).thenReturn(Duration.zero);
+
+        await expectLater(
+          socket.connection,
+          emitsInOrder([
+            const Connecting(),
+            isDisconnectedByTimeout(),
+            emitsDone,
+          ]),
+        );
+        expect(
+          socket.connection.state,
+          isDisconnectedByTimeout(),
+        );
+        socket.close();
+      });
+
+      test(
+          'emits [connecting, disconnected, reconnecting, disconnected] '
+          'when not able to establish a connection due to timeout with retry.',
+          () async {
+        final backoff = _MockBackoff();
+        final socket = WebSocket(
+          uri,
+          backoff: backoff,
+          timeout: const Duration(milliseconds: 50),
+        );
+
+        when(backoff.next).thenReturn(const Duration(milliseconds: 50));
+
+        await expectLater(
+          socket.connection,
+          emitsInOrder([
+            const Connecting(),
+            isDisconnected(
+              whereError: isA<io.SocketException>(),
+              whereStackTrace: isNotNull,
+            ),
+            const Reconnecting(),
+            isDisconnectedByTimeout(),
+            emitsDone,
+          ]),
+        );
+        expect(socket.connection.state, isDisconnectedByTimeout());
+        socket.close();
+      });
+
+      test(
           'emits [connecting, connected] '
           'when able to establish a connection.', () async {
         server = await createWebSocketServer();
@@ -335,11 +388,7 @@ void main() {
 
         await expectLater(
           socket.connection,
-          emitsInOrder([
-            const Connecting(),
-            const Disconnecting(),
-            const Disconnected(),
-          ]),
+          emitsInOrder([const Connecting(), const Disconnected()]),
         );
 
         expect(messages, equals(isEmpty));
@@ -461,11 +510,24 @@ Future<io.HttpServer> createWebSocketServer({
   return server;
 }
 
+Matcher isDisconnectedByTimeout() {
+  return isDisconnected(
+    whereCode: equals(1006),
+    whereReason: equals('connection timeout'),
+    whereError: isNull,
+    whereStackTrace: isNull,
+  );
+}
+
 Matcher isDisconnected({
+  Matcher? whereCode,
+  Matcher? whereReason,
   Matcher? whereError,
   Matcher? whereStackTrace,
 }) {
   return isA<Disconnected>()
+      .having((d) => d.code, 'code', whereCode)
+      .having((d) => d.reason, 'reason', whereReason)
       .having((d) => d.error, 'error', whereError)
       .having((d) => d.stackTrace, 'stackTrace', whereStackTrace);
 }
