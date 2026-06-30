@@ -25,15 +25,17 @@ Future<WebSocket> connect(
 
   unawaited(
     socket.onOpen.first.then((_) {
-      completer.complete(socket);
+      if (!completer.isCompleted) completer.complete(socket);
     }),
   );
 
   unawaited(
     socket.onError.first.then((event) {
-      final error =
-          event.isA<ErrorEvent>() ? (event as ErrorEvent).error : null;
-      completer.completeError(error ?? Exception('unknown error'));
+      if (!completer.isCompleted) {
+        final error =
+            event.isA<ErrorEvent>() ? (event as ErrorEvent).error : null;
+        completer.completeError(error ?? Exception('unknown error'));
+      }
     }),
   );
 
