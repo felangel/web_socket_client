@@ -24,6 +24,10 @@ const _defaultTimeout = Duration(seconds: 60);
 /// {@endtemplate}
 class WebSocket {
   /// {@macro web_socket}
+  ///
+  /// On native platforms, [compressionEnabled] controls whether compression is
+  /// negotiated, including on automatic reconnects. Defaults to true.
+  /// This option is ignored on the web, where the browser controls compression.
   WebSocket(
     Uri uri, {
     Iterable<String>? protocols,
@@ -32,13 +36,15 @@ class WebSocket {
     Backoff? backoff,
     Duration? timeout,
     String? binaryType,
+    bool compressionEnabled = true,
   })  : _uri = uri,
         _protocols = protocols,
         _pingInterval = pingInterval,
         _headers = headers,
         _backoff = backoff ?? _defaultBackoff,
         _timeout = timeout ?? _defaultTimeout,
-        _binaryType = binaryType {
+        _binaryType = binaryType,
+        _compressionEnabled = compressionEnabled {
     _connect();
   }
 
@@ -49,6 +55,7 @@ class WebSocket {
   final Backoff _backoff;
   final Duration _timeout;
   final String? _binaryType;
+  final bool _compressionEnabled;
 
   final _messageController = StreamController<dynamic>.broadcast();
   final _connectionController = ConnectionController();
@@ -101,6 +108,7 @@ class WebSocket {
         headers: _headers,
         pingInterval: _pingInterval,
         binaryType: _binaryType,
+        compressionEnabled: _compressionEnabled,
       ).timeout(_timeout);
 
       final connectionState = _connectionController.state;

@@ -40,6 +40,26 @@ final timeout = Duration(seconds: 10);
 final socket = WebSocket(uri, timeout: timeout);
 ```
 
+## Compression
+
+On native platforms, compression negotiation is enabled by default. To disable
+it for a client, including all automatic reconnects, set `compressionEnabled`
+to `false`:
+
+```dart
+final socket = WebSocket(
+  Uri.parse('ws://localhost:8080'),
+  compressionEnabled: false,
+);
+```
+
+Disabling compression can reduce compression-related memory and CPU overhead,
+at the cost of increased bandwidth for compressible messages. This setting is
+per client and does not affect other connections.
+
+This option is ignored on the web because the browser controls compression
+negotiation and does not expose an option to disable it.
+
 ## Reconnecting 🔄
 
 If the `WebSocket` client is not able to establish a connection, it will
