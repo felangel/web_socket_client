@@ -1,3 +1,7 @@
+# Unreleased
+
+- feat: add `compressionEnabled` to disable native WebSocket compression, including on automatic reconnects.
+
 # 0.2.1
 
 - fix: infinite backoff loop by permanently disconnecting and closing the connection if `timeout` duration is exceeded.

@@ -10,6 +10,7 @@ Future<WebSocket> connect(
   Map<String, dynamic>? headers,
   Duration? pingInterval,
   String? binaryType,
+  bool compressionEnabled = true,
 }) async {
   final socket = WebSocket(
     url,

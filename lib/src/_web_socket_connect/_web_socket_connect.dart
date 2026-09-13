@@ -5,6 +5,7 @@ Future<Stream<dynamic>> connect(
   Map<String, dynamic>? headers,
   Duration? pingInterval,
   String? binaryType,
+  bool compressionEnabled = true,
 }) {
   throw UnsupportedError('No implementation of the api provided');
 }
